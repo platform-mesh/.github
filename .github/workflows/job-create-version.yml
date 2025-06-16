@@ -34,6 +34,7 @@ jobs:
           majorList: BREAKING CHANGE, BREAKING, MAJOR
           minorList: FEATURE, Feature, feature, FEAT, Feat, feat
           patchList: FIX, Fix, fix, FIXED, Fixed, fixed, chore, config, conf, cofiguration, configure, build, chore, ci, rebuild, doc, docu, document, documentation, dependencies
+          fallbackTag: 0.0.1
           noNewCommitBehavior: patch
           noVersionBumpBehavior: patch
           skipInvalidTags: true
