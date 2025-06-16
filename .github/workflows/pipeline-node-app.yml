@@ -1,0 +1,75 @@
+name: pipeline
+on:
+  workflow_call:
+    inputs:
+      imageTagName:
+        required: true
+        type: string
+      componentVersionKey:
+        required: true
+        type: string
+      release_branch:
+        description: 'Name of the release branch'
+        required: false
+        type: string
+        default: 'main'
+      node_version:
+        description: 'Node version to use'
+        required: false
+        type: string
+        default: '20'
+      repoVersionUpdate:
+        required: false
+        type: string
+        default: 'platform-mesh/helm-charts-priv'
+      chart:
+        required: false
+        type: string
+        default: ${{ github.event.repository.name }}
+
+jobs:
+  auto-labeler:
+    if: ${{ (github.head_ref || github.ref) != format('refs/heads/{0}',inputs.release_branch) }}
+    uses: ./.github/workflows/job-auto-labeler.yml
+    secrets: inherit
+
+  createVersion:
+    if: ${{ (github.head_ref || github.ref) == format('refs/heads/{0}',inputs.release_branch) }}
+    uses: ./.github/workflows/job-create-version.yml
+    secrets: inherit
+
+  test:
+    uses: ./.github/workflows/job-node-test.yml
+    with:
+      release_branch: ${{ inputs.release_branch }}
+      node_version: ${{ inputs.node_version }}
+
+  dockerBuild:
+    if: ${{ (github.head_ref || github.ref) != format('refs/heads/{0}',inputs.release_branch) }}
+    uses: ./.github/workflows/job-docker-build-push.yml
+    with:
+      imageTagName: ${{ inputs.imageTagName }}
+      release_branch: ${{ inputs.release_branch }}
+      multiarch: false
+    secrets: inherit
+
+  dockerBuildAndPush:
+    if: ${{ (github.head_ref || github.ref) == format('refs/heads/{0}',inputs.release_branch) }}
+    needs: [createVersion,test]
+    uses: ./.github/workflows/job-docker-build-push.yml
+    with:
+      imageTagName: ${{ inputs.imageTagName }}
+      version: ${{ needs.createVersion.outputs.version }}
+      release_branch: ${{ inputs.release_branch }}
+      multiarch: true
+    secrets: inherit
+
+  updateVersion:
+    needs: [createVersion, dockerBuildAndPush]
+    if: ${{ (github.head_ref || github.ref) == format('refs/heads/{0}',inputs.release_branch) }}
+    uses: ./.github/workflows/job-chart-version-update.yml
+    secrets: inherit
+    with:
+      appVersion: ${{ needs.createVersion.outputs.version }}
+      chart: ${{ inputs.chart }}
+      targetRepository: ${{ inputs.repoVersionUpdate }}

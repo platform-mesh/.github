@@ -1,0 +1,50 @@
+name: Create Version
+on:
+  workflow_call:
+    inputs:
+      prefix:
+        description: 'The prefix to use for the version'
+        required: false
+        default: ''
+        type: string
+    outputs:
+      version:
+        description: The prepared Version
+        value: ${{ jobs.version.outputs.version }}
+      strictVersion:
+        description: The prepared Strict Version
+        value: ${{ jobs.version.outputs.strictVersion }}
+
+jobs:
+  # Creates a new semver to be used in the following workflow steps
+  version:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Set up repository
+        uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4
+        with:
+          fetch-depth: 0
+          ref: ${{ github.head_ref || github.ref }}
+      
+      - name: Get next version
+        id: semver
+        uses: ietf-tools/semver-action@778d1d5b7af80aa43f50104116b8363e7fc0d1ef # v1
+        with:
+          token: ${{ secrets.GITHUB_TOKEN }}
+          majorList: BREAKING CHANGE, BREAKING, MAJOR
+          minorList: FEATURE, Feature, feature, FEAT, Feat, feat
+          patchList: FIX, Fix, fix, FIXED, Fixed, fixed, chore, config, conf, cofiguration, configure, build, chore, ci, rebuild, doc, docu, document, documentation, dependencies
+          noNewCommitBehavior: patch
+          noVersionBumpBehavior: patch
+          skipInvalidTags: true
+          prefix: ${{ inputs.prefix }}
+      
+      - name: Publish raw Tag
+        if: ${{ !github.head_ref }}
+        run: |
+          git tag ${{ steps.semver.outputs.nextStrict }}
+          git push --tags
+
+    outputs:
+      version: ${{ steps.semver.outputs.next }}
+      strictVersion: ${{ steps.semver.outputs.nextStrict }}
