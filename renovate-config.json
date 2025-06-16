@@ -1,0 +1,83 @@
+{
+  "$schema": "https://docs.renovatebot.com/renovate-schema.json",
+  "extends": [
+    "config:base",
+    "helpers:pinGitHubActionDigests"
+  ],
+  "npm": {},
+  "automerge": true,
+  "automergeType": "pr",
+  "autoapprove": true,
+  "platformAutomerge": true,
+  "postUpdateOptions": [
+    "gomodUpdateImportPaths",
+    "gomodTidy",
+    "helmUpdateSubChartArchives"
+  ],
+  "packageRules": [
+    {
+      "managers": ["helmv3"],
+      "enabled": true,
+      "bumpVersion": "patch"
+    },
+    {
+      "groupName": "NestJS",
+      "matchPackagePrefixes": [
+        "@nestjs/",
+        "axios",
+        "nestjs",
+        "rxjs"
+      ],
+      "automerge": false,
+      "platformAutomerge": false
+    },
+    {
+      "groupName": "Luigi",
+      "matchPackagePrefixes": [
+        "@luigi-project/"
+      ],
+      "automerge": false,
+      "platformAutomerge": false
+    },
+    {
+      "groupName": "Fundamental NGX and Angular",
+      "matchPackagePrefixes": [
+        "@angular-eslint/",
+        "@angular/",
+        "@angular-devkit/",
+        "@angular-builders/",
+        "rxjs",
+        "typescript",
+        "@fundamental-ngx/",
+        "@sap-theming/theming-base-content",
+        "@ui5/webcomponents-icons",
+        "fundamental-styles",
+        "apollo-angular",
+        "ng-",
+        "ngx",
+        "jest",
+        "ts-jest",
+        "@types/jest",
+        "zone.js"
+      ],
+      "automerge": false,
+      "platformAutomerge": false
+    },
+    {
+      "groupName": "Github Actions",
+      "matchPackagePrefixes": [
+        "@actions/upload-artifact",
+        "@actions/download-artifact"
+      ],
+      "platformAutomerge": false,
+      "automerge": false
+    },
+    {
+      "allowedVersions": "<1.4.0",
+      "matchPackageNames": [
+        "k8s.io/client-go"
+      ]
+    }
+  ],
+  "rebaseWhen": "auto"
+}
