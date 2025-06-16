@@ -1,0 +1,52 @@
+name: Docker Build and Push
+on:
+  workflow_call:
+    inputs:
+      imageTagName:
+        required: true
+        type: string
+      version:
+        required: false
+        type: string
+        default: 'latest'
+      release_branch:
+        required: false
+        type: string
+        default: "main"
+      multiarch:
+        required: false
+        type: boolean
+        default: true
+
+jobs:
+  docker:
+    runs-on: ${{ (github.head_ref || github.ref) == format('refs/heads/{0}',inputs.release_branch) && 'ubuntu-latest-large' || 'ubuntu-latest' }}
+    steps:
+      - name: Login to GitHub Container Registry
+        uses: docker/login-action@74a5d142397b4f367a81961eba4e8cd7edddf772 # v3
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@b5ca514318bd6ebac0fb2aedd5d36ec1b5c232a2 # v3
+      - name: Build and push
+        uses: docker/build-push-action@1dc73863535b631f98b2378be8619f83b136f4a0 # v6
+        with:
+          push: ${{ (github.head_ref || github.ref) == format('refs/heads/{0}',inputs.release_branch) }}
+          platforms: ${{ (inputs.multiarch && (github.head_ref || github.ref) == format('refs/heads/{0}',inputs.release_branch)) && 'linux/amd64,linux/arm64' || 'linux/amd64' }}
+          tags: ${{ inputs.imageTagName }}:${{ inputs.version }}
+          secrets: |
+            github_token=${{ secrets.GITHUB_TOKEN }}
+      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4
+      - name: Create Release
+        if: ${{ (github.head_ref || github.ref) == format('refs/heads/{0}',inputs.release_branch) }}
+        uses: ncipollo/release-action@440c8c1cb0ed28b9f43e4d1d670870f059653174 # v1.16.0
+        with:
+          allowUpdates: true
+          draft: false
+          makeLatest: true
+          generateReleaseNotes: true
+          tag: ${{ inputs.version }}
+          name: ${{ inputs.version }}
+          token: ${{ secrets.GITHUB_TOKEN }}

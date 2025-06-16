@@ -1,0 +1,38 @@
+name: Trigger Chart Version Update
+on:
+  workflow_call:
+    inputs:
+      chart:
+        description: 'The name of the helm chart'
+        required: true
+        default: ''
+        type: string
+      appVersion:
+        description: 'The version tag of the docker image'
+        required: true
+        default: '0.0.0'
+        type: string
+      targetRepository:
+        description: 'The repository to trigger the workflow in'
+        required: false
+        default: 'platform-mesh/helm-charts'
+        type: string
+
+jobs:
+  trigger-helm-charts-version-update:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Generate a token
+        id: generate-token
+        uses: actions/create-github-app-token@df432ceedc7162793a195dd1713ff69aefc7379e # v2
+        with:
+         app-id: "838464"
+         private-key: ${{ secrets.PM_PUBLISHER_PRIVATE_KEY }}
+         owner: ${{ github.repository_owner }}
+         repositories: |
+           ${{ inputs.chartName }}
+           helm-charts
+           helm-charts-priv
+      - run: gh workflow run update-chart-parameters.yaml --repo ${{ inputs.targetRepository }} --field chart=${{ inputs.chart }} --field appVersion=${{ inputs.appVersion }}
+        env:
+          GITHUB_TOKEN: ${{ steps.generate-token.outputs.token }}

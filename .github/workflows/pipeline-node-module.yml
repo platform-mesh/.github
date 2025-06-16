@@ -1,0 +1,66 @@
+name: pipeline
+on:
+  workflow_call:
+    inputs:
+      workingDirectory:
+        required: false
+        type: string
+        default: './'
+      publishFromDist:
+        required: false
+        type: boolean
+        default: false
+      release_branch:
+        description: 'Name of the release branch'
+        required: false
+        type: string
+        default: 'main'
+      node_version:
+        description: 'Node version to use'
+        required: false
+        type: string
+        default: '20'
+      prefix:
+        description: 'The prefix to use for the version'
+        required: false
+        default: ''
+        type: string
+      artifactPath:
+        required: false
+        type: string
+        default: 'dist'
+      workingDirectoryDist:
+        required: false
+        type: string
+        default: './dist'
+
+jobs:
+  createVersion:
+    if: ${{ (github.head_ref || github.ref) == format('refs/heads/{0}',inputs.release_branch) }}
+    uses: ./.github/workflows/job-create-version.yml
+    with:
+      prefix: ${{ inputs.prefix }}
+
+  build:
+    uses: ./.github/workflows/job-node-test.yml
+    secrets: inherit
+    with:
+      workingDirectory: ${{ inputs.workingDirectory }}
+      release_branch: ${{ inputs.release_branch }}
+      artifactPath: ${{ inputs.artifactPath }}
+
+  publish:
+    if: ${{ (github.head_ref || github.ref) == format('refs/heads/{0}',inputs.release_branch) }}
+    needs: [createVersion, build]
+    uses: ./.github/workflows/job-node-publish.yml
+    secrets: inherit
+    with:
+      version: ${{ needs.createVersion.outputs.strictVersion }}
+      workingDirectory: ${{ inputs.workingDirectory }}
+      publishFromDist: ${{ inputs.publishFromDist }}
+      release_branch: ${{ inputs.release_branch }}
+      node_version: ${{ inputs.node_version }}
+      prefix: ${{ inputs.prefix }}
+      artifactPath: ${{ inputs.artifactPath }}
+      workingDirectoryDist: ${{ inputs.workingDirectoryDist }}
+

@@ -1,0 +1,74 @@
+name: pipeline
+on:
+  workflow_call:
+    inputs:
+      useTask:
+        required: false
+        type: boolean
+        default: false
+      coverageThresholdFile:
+        required: false
+        type: number
+        default: 80
+      coverageThresholdPackage:
+        required: false
+        type: number
+        default: 80
+      coverageThresholdTotal:
+        required: false
+        type: number
+        default: 95
+      useLocalCoverageConfig:
+        required: false
+        type: boolean
+        default: false
+      release_branch:
+        required: false
+        type: string
+        default: 'main'
+    outputs:
+      version:
+        description: "The created Version"
+        value: ${{ jobs.createVersion.outputs.version }}
+
+
+jobs:
+  auto-labeler:
+    if: ${{ (github.head_ref || github.ref) != format('refs/heads/{0}',inputs.release_branch) }}
+    uses: ./.github/workflows/job-auto-labeler.yml
+    secrets: inherit
+
+  createVersion:
+    if: ${{ (github.head_ref || github.ref) == format('refs/heads/{0}',inputs.release_branch) }}
+    uses: ./.github/workflows/job-create-version.yml
+    secrets: inherit
+  
+  lint:
+    uses: ./.github/workflows/job-golang-lint.yml
+    with:
+      useTask: ${{ inputs.useTask }}
+
+  testSource:
+    uses: ./.github/workflows/job-golang-test-source.yml
+    with:
+      useTask: ${{ inputs.useTask }}
+      useLocalCoverageConfig: ${{ inputs.useLocalCoverageConfig }}
+      coverageThresholdFile: ${{ inputs.coverageThresholdFile }}
+      coverageThresholdPackage: ${{ inputs.coverageThresholdPackage }}
+      coverageThresholdTotal: ${{ inputs.coverageThresholdTotal }}
+
+  publishVersion:
+    if: (github.head_ref || github.ref) == format('refs/heads/{0}',inputs.release_branch)
+    runs-on: ubuntu-latest
+    needs: [createVersion,lint,testSource]
+    steps:
+      - name: Create Release
+        uses: ncipollo/release-action@440c8c1cb0ed28b9f43e4d1d670870f059653174 # v1.16.0
+        with:
+          allowUpdates: true
+          draft: false
+          makeLatest: true
+          generateReleaseNotes: true
+          tag: ${{ needs.createVersion.outputs.version }}
+          name: ${{ needs.createVersion.outputs.version }}
+          token: ${{ secrets.GITHUB_TOKEN }}

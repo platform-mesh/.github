@@ -1,0 +1,103 @@
+name: Node Test
+on:
+  workflow_call:
+    inputs:
+      version:
+        type: string
+        description: 'Version'
+        required: true
+      workingDirectory:
+        required: false
+        type: string
+        default: './'
+      workingDirectoryDist:
+        required: false
+        type: string
+        default: './dist'
+      publishFromDist:
+        required: false
+        type: boolean
+        default: false
+      release_branch:
+        description: 'Name of the release branch'
+        required: false
+        type: string
+        default: 'main'
+      node_version:
+        description: 'Node version to use'
+        required: false
+        type: string
+        default: '20'
+      prefix:
+        description: 'The prefix to use for the version'
+        required: false
+        default: ''
+        type: string
+      artifactPath:
+        required: false
+        type: string
+        default: 'dist'
+
+jobs:
+  publish:
+    runs-on: ubuntu-latest
+    if: (github.head_ref || github.ref) == format('refs/heads/{0}',inputs.release_branch)
+    steps:
+    - name: Setup Git
+      run: |
+        git config --global user.name 'Platform Mesh Technical User'
+        git config --global user.email 'openmfp@gmail.com'
+    - uses: actions/create-github-app-token@df432ceedc7162793a195dd1713ff69aefc7379e # v2
+      id: app-token
+      with:
+        app-id: "838464"
+        private-key: ${{ secrets.PM_PUBLISHER_PRIVATE_KEY }}
+    - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4
+      with:
+        token: ${{ steps.app-token.outputs.token }}
+    - uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4
+      with:
+        node-version: ${{ inputs.node_version }}
+        registry-url: https://npm.pkg.github.com/
+    - uses: actions/download-artifact@d3f86a106a0bac45b974a628896c90dbdf5c8093 # v4
+      with:
+        name: target
+        path: ${{ inputs.artifactPath }}
+      continue-on-error: true
+    - name: Clean up prefix from version
+      run: |
+        CLEANED_VERSION=$(echo ${{ inputs.version }} | cut -c$(wc -c <<<"${{ inputs.prefix }}")-) 
+
+        echo "CLEANED_VERSION=$CLEANED_VERSION" >> $GITHUB_ENV
+    - name: Publish from dist folder
+      if: ${{ inputs.publishFromDist }}
+      run: |
+        npm version ${{ env.CLEANED_VERSION }}
+        npm publish
+        cd ..
+        npm version ${{ env.CLEANED_VERSION }} -m "[no ci] Release ${{ env.CLEANED_VERSION }}"
+      working-directory:
+        ${{ inputs.workingDirectoryDist }}
+      env:
+        NODE_AUTH_TOKEN: ${{secrets.GITHUB_TOKEN}}
+    - name: Publish
+      if: ${{ !inputs.publishFromDist }}
+      run: |
+        npm version ${{ env.CLEANED_VERSION }} -m "[no ci] Release ${{ env.CLEANED_VERSION }}"
+        npm publish
+      working-directory:
+        ${{ inputs.workingDirectory }}
+      env:
+        NODE_AUTH_TOKEN: ${{secrets.GITHUB_TOKEN}}
+    # npm version does not commit on subdirectories, so we commit manually
+    - name: Commit and Tag
+      if: inputs.workingDirectory != './'
+      run: |
+        git add .
+        git commit -m "[no ci] Release ${{ env.CLEANED_VERSION }}"
+        git fetch
+        git rebase
+    - name: Push
+      run: |
+        git push origin
+      working-directory: ${{ inputs.workingDirectory }}

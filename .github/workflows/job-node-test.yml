@@ -1,0 +1,47 @@
+name: Node Test
+on:
+  workflow_call:
+    inputs:
+      workingDirectory:
+        required: false
+        type: string
+        default: './'
+      release_branch:
+        description: 'Name of the release branch'
+        required: false
+        type: string
+        default: 'main'
+      node_version:
+        description: 'Node version to use'
+        required: false
+        type: string
+        default: '20'
+      artifactPath:
+        required: false
+        type: string
+        default: 'dist'
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    steps:
+    - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4
+    - uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4
+      with:
+        node-version: ${{ inputs.node_version }}
+        registry-url: https://npm.pkg.github.com/
+    - run: npm ci
+      env:
+        NODE_AUTH_TOKEN: ${{secrets.GITHUB_TOKEN}}
+      working-directory: ${{ inputs.workingDirectory }}
+    - run: npm test
+      working-directory: ${{ inputs.workingDirectory }}
+    - run: npm run build
+      working-directory: ${{ inputs.workingDirectory }}
+    - uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
+      if: ${{ (github.head_ref || github.ref) == format('refs/heads/{0}', inputs.release_branch ) }}
+      with:
+        name: target
+        path: ${{ inputs.artifactPath }}
+        retention-days: 1
