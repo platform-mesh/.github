@@ -12,9 +12,9 @@ Learn more about ApeiroRA by checking out the official website at [https://apeir
 
 ## :handshake: Platform Mesh
 
-The high-level goal of the Apeiro Reference Architecture is to enable development and operation of applications and services across public clouds, private clouds, and the edge - the cloud-edge continuum.
-
+Platform Mesh establishes interoperability between multiple providers by building upon the Kubernetes API and resource model. Developers and admins can discover, access, and order services from various sources through their beloved kubectl.
 ## :pushpin: Platform Mesh and NeoNephos
+
 
 Platform Mesh has been donated to the NeoNephos Foundation, a Linux Foundation initiative dedicated to advancing open-source projects that align with the strategic objectives of IPCEI-CIS under neutral governance. Learn more about NeoNephos and our role within it [here](https://neonephos.org).
 
