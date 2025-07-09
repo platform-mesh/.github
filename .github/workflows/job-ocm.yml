@@ -21,7 +21,7 @@ jobs:
         uses: actions/create-github-app-token@df432ceedc7162793a195dd1713ff69aefc7379e # v2
         id: app-token
         with:
-          app-id: "838464"
+          app-id: "1415820"
           private-key: ${{ secrets.PM_PUBLISHER_PRIVATE_KEY }}
           owner: ${{ github.repository_owner }}
       - name: Setup yq@latest
