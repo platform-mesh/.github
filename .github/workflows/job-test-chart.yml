@@ -27,7 +27,7 @@ jobs:
   unittest:
     runs-on: ubuntu-latest
     container:
-      image: ghcr.io/platform-mesh/infra/helm-unittest:latest
+      image: ghcr.io/platform-mesh/.github/infra/helm-unittest:latest
       credentials:
         username: ${{ github.actor }}
         password: ${{ secrets.github_token }}
