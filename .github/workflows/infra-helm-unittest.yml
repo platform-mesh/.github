@@ -33,4 +33,4 @@ jobs:
       with:
         context: infra/helm-unittest
         push: true
-        tags: ghcr.io/${{ github.repository }}/infra/helm-unittest:latest
+        tags: ghcr.io/platform-mesh/infra/helm-unittest:latest
