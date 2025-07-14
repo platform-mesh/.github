@@ -111,4 +111,4 @@ jobs:
             CHART_OCI_PATH=${{ env.CHART_OCI_PATH }} \
             LOCAL_CHART_PATH=${{ inputs.chartPath }}
       - name: Transfer to OCM REPO
-        run: ./ocm transfer ctf --overwrite .ocm/transport.ctf "europe-west3-docker.pkg.dev/sap-cp-k8s-ocm-gcp-eu30-dev/apeiro-showroom/ocm"
+        run: ./ocm transfer ctf --overwrite .ocm/transport.ctf "ghcr.io/platform-mesh/ocm"
