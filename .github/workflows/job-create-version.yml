@@ -54,4 +54,4 @@ jobs:
 
     outputs:
       version: ${{ steps.semver.outputs.next }}
-      strictVersion: ${{ steps.semver.outputs.nextStrict }}
+      strictVersion: ${{ steps.semver.outputs.next }}
