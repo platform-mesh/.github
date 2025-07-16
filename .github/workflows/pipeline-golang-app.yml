@@ -37,6 +37,10 @@ on:
         required: false
         type: boolean
         default: false
+      apiPackagePath:
+        required: false
+        type: string
+        default: ''
     outputs:
       version:
         description: "The created Version"
@@ -86,6 +90,8 @@ jobs:
     if: ${{ (github.head_ref || github.ref) == format('refs/heads/{0}',inputs.release_branch) }}
     uses: ./.github/workflows/job-create-version.yml
     secrets: inherit
+    with:
+      apiPackagePath: ${{ inputs.apiPackagePath }}
   
   lint:
     uses: ./.github/workflows/job-golang-lint.yml

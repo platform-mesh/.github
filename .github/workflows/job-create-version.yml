@@ -7,6 +7,10 @@ on:
         required: false
         default: ''
         type: string
+      apiPackagePath:
+        required: false
+        type: string
+        default: ''
     outputs:
       version:
         description: The prepared Version
@@ -43,6 +47,9 @@ jobs:
         if: ${{ !github.head_ref }}
         run: |
           git tag ${{ steps.semver.outputs.nextStrict }}
+          if [ -n "${{ inputs.apiPackagePath }}" ]; then
+            git tag "${{ inputs.apiPackagePath }}/${{ steps.semver.outputs.nextStrict }}"
+          fi
           git push --tags
 
     outputs:
