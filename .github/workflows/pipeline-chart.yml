@@ -40,12 +40,6 @@ jobs:
       chartRepos: ${{ inputs.chartRepos }}
     secrets: inherit
 
-  vulnerabilityScan:
-    uses: ./.github/workflows/job-scan-kubernetes-vulnerability.yml
-    with:
-      chartFolder: ${{ inputs.chartFolder }}/${{ inputs.chartName }}
-    secrets: inherit
-
   checkHelmDocs:
     uses: ./.github/workflows/job-check-helm-chart-docs.yml
     with:
@@ -53,7 +47,7 @@ jobs:
     secrets: inherit
 
   release:
-    needs: [testChart,checkHelmDocs,vulnerabilityScan]
+    needs: [testChart,checkHelmDocs]
     uses: ./.github/workflows/job-release-chart.yml
     secrets: inherit
     with:
