@@ -43,6 +43,7 @@ jobs:
     with:
       release_branch: ${{ inputs.release_branch }}
       node_version: ${{ inputs.node_version }}
+    secrets: inherit
 
   dockerBuild:
     if: ${{ (github.head_ref || github.ref) != format('refs/heads/{0}',inputs.release_branch) }}
