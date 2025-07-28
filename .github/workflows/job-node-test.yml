@@ -34,6 +34,7 @@ jobs:
     - run: npm ci
       env:
         NODE_AUTH_TOKEN: ${{secrets.GITHUB_TOKEN}}
+        COMMON_REPOSITORY_TOKEN: ${{ secrets.COMMON_REPOSITORY_TOKEN }}
       working-directory: ${{ inputs.workingDirectory }}
     - run: npm test
       working-directory: ${{ inputs.workingDirectory }}
