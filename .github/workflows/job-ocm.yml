@@ -14,7 +14,7 @@ on:
         default: .ocm/component-constructor.yaml
       ocmRegistryUrl:
         type: string
-        default: ghcr.io/platform-mesh/ocm
+        default: ghcr.io/platform-mesh
 
 jobs:
   ocm:
