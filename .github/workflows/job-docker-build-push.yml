@@ -36,6 +36,7 @@ jobs:
           push: ${{ (github.head_ref || github.ref) == format('refs/heads/{0}',inputs.release_branch) }}
           platforms: ${{ (inputs.multiarch && (github.head_ref || github.ref) == format('refs/heads/{0}',inputs.release_branch)) && 'linux/amd64,linux/arm64' || 'linux/amd64' }}
           tags: ${{ inputs.imageTagName }}:${{ inputs.version }}
+          context: .
           secrets: |
             github_token=${{ secrets.GITHUB_TOKEN }}
             common_repository_token=${{ secrets.COMMON_REPOSITORY_TOKEN }}
