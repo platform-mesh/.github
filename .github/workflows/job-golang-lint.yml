@@ -36,3 +36,5 @@ jobs:
       - name: lint task
         if: ${{ inputs.useTask }}
         run: task lint
+        env:
+          PLATFORM_MESH_TOKEN: ${{ secrets.PM_TECHNICAL_USER_TOKEN }}
