@@ -21,7 +21,9 @@ Platform Mesh has been donated to the NeoNephos Foundation, a Linux Foundation i
 ## :busts_in_silhouette: Get Involved
 
 Thank you for considering to contribute to our project.
-To become an excellent contributor, check out our [contribution guidelines](https://github.com/platform-mesh/.github/blob/main/CONTRIBUTING.md) and our [open issues](https://github.com/issues?q=is%3Aopen+is%3Aissue+org%3Aplatform-mesh+archived%3Afalse+).
+To become an excellent contributor, check out our [contribution guidelines](https://github.com/platform-mesh/.github/blob/main/CONTRIBUTING.md) and our [open issues](https://github.com/issues?q=is%3Aopen+is%3Aissue+org%3Aplatform-mesh+archived%3Afalse+) (this link requires to be logged in to GitHub).
+
+For general issues and questions please open an issue in the [platform-mesh](https://github.com/platform-mesh/platform-mesh/issues) repository.
 
 ## :blue_heart: Code of Conduct
 
