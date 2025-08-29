@@ -37,6 +37,9 @@ rulesets:
       - actor_id: 29110 # dependabot
         actor_type: Integration
         bypass_mode: always
+      - actor_id: 216591320 # Platform Mesh Publisher
+        actor_type: Integration
+        bypass_mode: always
 
     conditions:
       # Parameters for a repository ruleset ref name condition
