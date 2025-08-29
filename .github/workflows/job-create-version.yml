@@ -48,7 +48,7 @@ jobs:
         run: |
           git tag ${{ steps.semver.outputs.nextStrict }}
           if [ -n "${{ inputs.apiPackagePath }}" ]; then
-            git tag "${{ inputs.apiPackagePath }}/${{ steps.semver.outputs.nextStrict }}"
+            git tag "${{ inputs.apiPackagePath }}/${{ steps.semver.outputs.next }}"
           fi
           git push --tags
 
