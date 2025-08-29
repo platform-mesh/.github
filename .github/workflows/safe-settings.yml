@@ -1,0 +1,46 @@
+name: safe-settings
+
+on:
+  schedule:
+    - cron: "0 */4 * * *"
+  workflow_dispatch: {}
+  push:
+    branches:
+      - main
+    paths:
+      - safe-settings/**
+      - .github/workflows/safe-settings.yml
+
+jobs:
+
+  safe-settings-sync:
+    runs-on: ubuntu-latest
+    env:
+      SAFE_SETTINGS_CODE_DIR: "${{ github.workspace }}/.safe-settings-code"
+    steps:
+      - name: Checkout .github
+        uses: actions/checkout@v4
+      - name: Checkout github/safe-settings
+        uses: actions/checkout@v4
+        with:
+          repository: github/safe-settings
+          ref: '2.1.16'
+          path: "$SAFE_SETTINGS_CODE_DIR"
+
+      - uses: actions/setup-node@v4
+      - run: npm install
+        working-directory: "$SAFE_SETTINGS_CODE_DIR"
+      - run: npm run full-sync
+        working-directory: "$SAFE_SETTINGS_CODE_DIR"
+        env:
+          GH_ORG: platform-mesh
+          APP_ID: ${{ secrets.SAFE_SETTINGS_APP_ID }}
+          PRIVATE_KEY: ${{ secrets.SAFE_SETTINGS_PRIV_KEY }}
+          GITHUB_CLIENT_ID: ${{ secrets.SAFE_SETTINGS_CLIENT_ID }}
+          GITHUB_CLIENT_SECRET: ${{ secrets.SAFE_SETTINGS_CLIENT_SECRET }}
+          # https://github.com/platform-mesh/.github
+          ADMIN_REPO: .github
+          LOG_LEVEL: trace
+          # https://github.com/platform-mesh/.github/tree/main/safe-settings
+          CONFIG_PATH: safe-settings
+          DEPLOYMENT_CONFIG_FILE: ${{ github.workspace }}/safe-settings/config.yml

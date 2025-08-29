@@ -1,0 +1,237 @@
+# yaml-language-server: $schema=https://github.com/github/safe-settings/blob/main-enterprise/schema/dereferenced/settings.json
+# These settings are synced via https://github.com/platform-mesh/.github/actions/workflows/safe-settings.yml
+
+# They are applied to ALL repositories, except the ones that are globally excluded.
+
+# Milestones: define milestones for Issues and Pull Requests
+milestones: []
+
+# Rulesets
+# See https://docs.github.com/en/rest/orgs/rules?apiVersion=2022-11-28#create-an-organization-repository-rulesetfor available options
+rulesets:
+
+  # Prevents deleting and force pushing branches
+  # Requires pull request reviews before merging
+  - name: Platfrom Mesh Branch Protection
+
+    # The target of the ruleset. Can be one of:
+    # - branch
+    # - tag
+    target: branch
+
+    # The enforcement level of the ruleset. `evaluate` allows admins to test
+    # rules before enforcing them.
+    # - disabled
+    # - active
+    # - evaluate
+    enforcement: active
+
+    # The actors that can bypass the rules in this ruleset
+    bypass_actors:
+      - actor_id: 1
+        actor_type: OrganizationAdmin
+        bypass_mode: always
+      - actor_id: 2740 # renovate
+        actor_type: Integration
+        bypass_mode: always
+      - actor_id: 29110 # dependabot
+        actor_type: Integration
+        bypass_mode: always
+
+    conditions:
+      # Parameters for a repository ruleset ref name condition
+      ref_name:
+        # Array of ref names or patterns to include. One of these
+        # patterns must match for the condition to pass. Also accepts
+        # `~DEFAULT_BRANCH` to include the default branch or `~ALL` to
+        # include all branches.
+        include: ["~DEFAULT_BRANCH"]
+        exclude: []
+
+      # This condition only exists at the org level (remove for suborg and repo level rulesets)
+      repository_name:
+        # Array of repository names or patterns to include.
+        # One of these patterns must match for the condition
+        # to pass. Also accepts `~ALL` to include all
+        # repositories.
+        include: ["~ALL"]
+        # Array of repository names or patterns to exclude. The
+        # condition will not pass if any of these patterns
+        # match.
+        exclude: []
+        # Whether renaming of target repositories is
+        # prevented.
+        protected: true
+
+    # Refer to https://docs.github.com/en/rest/orgs/rules#create-an-organization-repository-ruleset
+    rules:
+      - type: deletion
+      - type: non_fast_forward
+      - type: pull_request
+        parameters:
+          # Reviewable commits pushed will dismiss previous pull
+          # request review approvals.
+          dismiss_stale_reviews_on_push: true
+          # Require an approving review in pull requests that modify
+          # files that have a designated code owner
+          require_code_owner_review: true
+          # Whether the most recent reviewable push must be approved
+          # by someone other than the person who pushed it.
+          require_last_push_approval: true
+          # The number of approving reviews that are required before a
+          # pull request can be merged.
+          required_approving_review_count: 1
+          # All conversations on code must be resolved before a pull
+          # request can be merged.
+          required_review_thread_resolution: true
+
+      # Choose which status checks must pass before branches can be merged
+      # into a branch that matches this rule. When enabled, commits must
+      # first be pushed to another branch, then merged or pushed directly
+      # to a branch that matches this rule after status checks have
+      # passed.
+      - type: required_status_checks
+        parameters:
+          # Whether pull requests targeting a matching branch must be
+          # tested with the latest code. This setting will not take
+          # effect unless at least one status check is enabled.
+          strict_required_status_checks_policy: true
+          required_status_checks:
+            # List of status checks that must pass before branches can be merged.
+            # The name of the status check is the name of the workflow run.
+          - context: DCO
+            integration_id: 1861
+
+  # Prevents deleting and updating tags
+  - name: Platfrom Mesh Tag Protection
+
+    # The target of the ruleset. Can be one of:
+    # - branch
+    # - tag
+    target: tag
+
+    # The enforcement level of the ruleset. `evaluate` allows admins to test
+    # rules before enforcing them.
+    # - disabled
+    # - active
+    # - evaluate
+    enforcement: active
+
+    # The actors that can bypass the rules in this ruleset
+    bypass_actors: []
+
+    conditions:
+      # Parameters for a repository ruleset ref name condition
+      ref_name:
+        # Array of ref names or patterns to include. One of these
+        # patterns must match for the condition to pass. Also accepts
+        # `~DEFAULT_BRANCH` to include the default branch or `~ALL` to
+        # include all branches.
+        include: ["~ALL"]
+        exclude: []
+
+      # This condition only exists at the org level (remove for suborg and repo level rulesets)
+      repository_name:
+        # Array of repository names or patterns to include.
+        # One of these patterns must match for the condition
+        # to pass. Also accepts `~ALL` to include all
+        # repositories.
+        include: ["~ALL"]
+        # Array of repository names or patterns to exclude. The
+        # condition will not pass if any of these patterns
+        # match.
+        exclude: []
+        # Whether renaming of target repositories is
+        # prevented.
+        protected: true
+
+    # Refer to https://docs.github.com/en/rest/orgs/rules#create-an-organization-repository-ruleset
+    rules:
+      - type: update
+      - type: deletion
+
+# This is the settings that need to be applied to all repositories in the org
+# See https://docs.github.com/en/rest/repos/repos?apiVersion=2022-11-28#create-an-organization-repository for all available settings for a repository
+repository:
+
+  # # A short description of the repository that will show up on GitHub
+  # description: description of the repo
+  # # A URL with more information about the repository
+  # homepage: https://example.github.io/
+
+  # Create an initial commit with empty README.
+  # Keep this set to true in most cases since many of the policies below cannot be implemented on bare repos
+  auto_init: true
+
+  # # A list of topics to set on the repository - can alternatively set like this: [github, probot, new-topic, another-topic, topic-12]
+  # topics: []
+
+  # Settings for Code security and analysis
+  # Dependabot Alerts
+  security:
+    enableVulnerabilityAlerts: true
+    enableAutomatedSecurityFixes: true
+
+  # Can be public or private. If your organization is associated with an enterprise account using
+  # GitHub Enterprise Cloud or GitHub Enterprise Server 2.20+, visibility can also be internal.
+  # TODO(ntnn): Disabling until its tested if this can be overwritten per repo in the repository itself.
+  # visibility: private
+
+  # Either `true` to enable issues for this repository, `false` to disable them.
+  has_issues: true
+
+  # Either `true` to enable projects for this repository, or `false` to disable them.
+  # If projects are disabled for the organization, passing `true` will cause an API error.
+  has_projects: false
+
+  # Either `true` to enable the wiki for this repository, `false` to disable it.
+  has_wiki: false
+
+  # The default branch for this repository.
+  default_branch: main
+
+  # Choose an [open source license template](https://choosealicense.com/)
+  # that best suits your needs, and then use the
+  # [license keyword](https://help.github.com/articles/licensing-a-repository/#searching-github-by-license-type)
+  # as the `license_template` string. For example, "mit" or "mpl-2.0".
+  license_template: Apache-2.0
+
+  # Either `true` to allow squash-merging pull requests, or `false` to prevent
+  # squash-merging.
+  allow_squash_merge: true
+
+  # Either `true` to allow merging pull requests with a merge commit, or `false`
+  # to prevent merging pull requests with merge commits.
+  allow_merge_commit: true
+
+  # Either `true` to allow rebase-merging pull requests, or `false` to prevent
+  # rebase-merging.
+  allow_rebase_merge: true
+
+  # Either `true` to allow auto-merge on pull requests,
+  # or `false` to disallow auto-merge.
+  # Default: `false`
+  allow_auto_merge: true
+
+  # Either `true` to allow automatically deleting head branches
+  # when pull requests are merged, or `false` to prevent automatic deletion.
+  # Default: `false`
+  delete_branch_on_merge: true
+
+  # Either `true` to  allow update branch on pull requests,
+  # or `false` to disallow update branch.
+  # Default: `false`
+  allow_update_branch: true
+
+# Teams
+# See https://docs.github.com/en/rest/teams/teams?apiVersion=2022-11-28#create-a-team for available options
+teams:
+  - name: tsc
+    # The permission to grant the team. Can be one of:
+    # * `pull` - can pull, but not push to or administer this repository.
+    # * `push` - can pull and push, but not administer this repository.
+    # * `admin` - can pull, push and administer this repository.
+    permission: admin
+
+  - name: readers
+    permission: pull
