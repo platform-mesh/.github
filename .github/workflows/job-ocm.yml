@@ -115,3 +115,8 @@ jobs:
             LOCAL_CHART_PATH=${{ inputs.chartPath }}
       - name: Transfer to OCM REPO
         run: ./ocm transfer ctf --overwrite .ocm/transport.ctf "${{ inputs.ocmRegistryUrl }}"
+      - name: Trigger PlatformMesh OCM build
+        run: |
+          gh workflow run ocm.yaml --repo "platform-mesh/ocm"
+        env:
+          GITHUB_TOKEN: ${{ steps.app-token.outputs.token }}
