@@ -12,7 +12,8 @@
   "postUpdateOptions": [
     "gomodUpdateImportPaths",
     "gomodTidy",
-    "helmUpdateSubChartArchives"
+    "helmUpdateSubChartArchives",
+    "npmInstallTwice"
   ],
   "packageRules": [
     {
