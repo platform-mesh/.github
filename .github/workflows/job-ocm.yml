@@ -88,16 +88,6 @@ jobs:
                       properties:
                         username: github
                         password: ${{ secrets.GITHUB_TOKEN }}
-                - identity:
-                    type: OCIRegistry
-                    scheme: https
-                    hostname: ghcr.io
-                    pathprefix: openmfp
-                  credentials:
-                    - type: Credentials
-                      properties:
-                        username: github
-                        password: ${{ secrets.OPENMFP_PUBLISHER_TOKEN }}
           EOF
       - name: create OCM ComponentArchive
         run: |
