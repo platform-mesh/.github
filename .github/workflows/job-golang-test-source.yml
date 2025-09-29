@@ -27,6 +27,12 @@ jobs:
         with:
           go-version-file: 'go.mod'
           cache: true
+      - name: Enable git CLI clones using GITHUB_TOKEN
+        run: |
+          git config --global url."https://x-access-token:${GITHUB_TOKEN}@github.com/".insteadOf "ssh://git@github.com/"
+          git config --global url."https://x-access-token:${GITHUB_TOKEN}@github.com/".insteadOf "git@github.com:"
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
       - name: Install Task
         uses: arduino/setup-task@v2
         if: ${{ inputs.useTask }}
