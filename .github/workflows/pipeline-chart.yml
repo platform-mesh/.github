@@ -60,5 +60,14 @@ jobs:
   ocm:
     if: ${{ (github.head_ref || github.ref) == format('refs/heads/{0}',inputs.release_branch) }}
     needs: [release]
+    uses: platform-mesh/.github/.github/workflows/job-ocm.yml@main
+    secrets: inherit
+    with:
+      chartPath: ${{ inputs.chartFolder }}/${{ inputs.chartName }}
+      componentName: github.com/platform-mesh/${{ inputs.chartName }}
+
+  pm-ocm:
+    if: ${{ (github.head_ref || github.ref) == format('refs/heads/{0}',inputs.release_branch) }}
+    needs: [ocm]
     uses: ./.github/workflows/job-ocm-version-update.yml
     secrets: inherit
