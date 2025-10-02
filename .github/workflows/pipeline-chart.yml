@@ -56,3 +56,9 @@ jobs:
       updateImageTag: false
       chartFolder: ${{ inputs.chartFolder }}/${{ inputs.chartName }}
       release_branch: ${{ inputs.release_branch }}
+
+  ocm:
+    if: ${{ (github.head_ref || github.ref) == format('refs/heads/{0}',inputs.release_branch) }}
+    needs: [release]
+    uses: ./.github/workflows/job-ocm-version-update.yml
+    secrets: inherit
