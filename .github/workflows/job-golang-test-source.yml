@@ -50,5 +50,5 @@ jobs:
         run: go-test-coverage --threshold-file ${{ inputs. coverageThresholdFile }} --threshold-package ${{ inputs. coverageThresholdPackage }} --threshold-total ${{ inputs. coverageThresholdTotal }} --profile cover.out
         if: ${{ inputs.useLocalCoverageConfig == false }}
       - name: Check Test Coverage with Config
-        run: go-test-coverage --threshold-file ${{ inputs. coverageThresholdFile }} --threshold-package ${{ inputs. coverageThresholdPackage }} --threshold-total ${{ inputs. coverageThresholdTotal }} --profile cover.out --config ./.testcoverage.yml
+        run: go-test-coverage --profile cover.out --config ./.testcoverage.yml
         if: ${{ inputs.useLocalCoverageConfig == true }}
