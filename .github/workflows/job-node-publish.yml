@@ -18,11 +18,6 @@ on:
         required: false
         type: boolean
         default: false
-      release_branch:
-        description: 'Name of the release branch'
-        required: false
-        type: string
-        default: 'main'
       node_version:
         description: 'Node version to use'
         required: false
@@ -37,16 +32,20 @@ on:
         required: false
         type: string
         default: 'dist'
+      environment:
+        description: 'The environment to use'
+        required: true
+        type: string
 
 jobs:
   publish:
     runs-on: ubuntu-latest
-    if: (github.head_ref || github.ref) == format('refs/heads/{0}',inputs.release_branch)
+    environment: ${{ inputs.environment }}
     steps:
     - name: Setup Git
       run: |
         git config --global user.name 'Platform Mesh Technical User'
-        git config --global user.email 'openmfp@gmail.com'
+        git config --global user.email 'platform.mesh.tech@gmail.com'
     - uses: actions/create-github-app-token@67018539274d69449ef7c02e8e71183d1719ab42 # v2
       id: app-token
       with:
@@ -58,8 +57,8 @@ jobs:
     - uses: actions/setup-node@2028fbc5c25fe9cf00d9f06a71cc4710d4507903 # v6
       with:
         node-version: ${{ inputs.node_version }}
-        registry-url: https://npm.pkg.github.com/
-    - uses: actions/download-artifact@634f93cb2916e3fdff6788551b99b062d0335ce0 # v5
+        registry-url: https://registry.npmjs.org
+    - uses: actions/download-artifact@018cc2cf5baa6db3ef3c5f8a56943fffe632ef53 # v6
       with:
         name: target
         path: ${{ inputs.artifactPath }}
@@ -67,29 +66,23 @@ jobs:
     - name: Clean up prefix from version
       run: |
         CLEANED_VERSION=$(echo ${{ inputs.version }} | cut -c$(wc -c <<<"${{ inputs.prefix }}")-) 
-
         echo "CLEANED_VERSION=$CLEANED_VERSION" >> $GITHUB_ENV
     - name: Publish from dist folder
       if: ${{ inputs.publishFromDist }}
       run: |
         npm version ${{ env.CLEANED_VERSION }}
-        npm publish
+        npm publish --provenance --access public
         cd ..
         npm version ${{ env.CLEANED_VERSION }} -m "[no ci] Release ${{ env.CLEANED_VERSION }}"
       working-directory:
         ${{ inputs.workingDirectoryDist }}
-      env:
-        NODE_AUTH_TOKEN: ${{secrets.GITHUB_TOKEN}}
-    - name: Publish
+    - name: Publish to npmjs
       if: ${{ !inputs.publishFromDist }}
       run: |
         npm version ${{ env.CLEANED_VERSION }} -m "[no ci] Release ${{ env.CLEANED_VERSION }}"
-        npm publish
+        npm publish --provenance --access public
       working-directory:
         ${{ inputs.workingDirectory }}
-      env:
-        NODE_AUTH_TOKEN: ${{secrets.GITHUB_TOKEN}}
-    # npm version does not commit on subdirectories, so we commit manually
     - name: Commit and Tag
       if: inputs.workingDirectory != './'
       run: |

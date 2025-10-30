@@ -1,4 +1,10 @@
 name: pipeline
+
+permissions:
+  # Write access is used for tag creation and version commits
+  contents: write
+  # Needed for provenance creation when publishing to npmjs
+  id-token: write
 on:
   workflow_call:
     inputs:
@@ -19,7 +25,7 @@ on:
         description: 'Node version to use'
         required: false
         type: string
-        default: '20'
+        default: '24'
       prefix:
         description: 'The prefix to use for the version'
         required: false
@@ -33,6 +39,10 @@ on:
         required: false
         type: string
         default: './dist'
+      environment:
+        description: 'The environment to use'
+        required: true
+        type: string
 
 jobs:
   createVersion:
@@ -58,9 +68,9 @@ jobs:
       version: ${{ needs.createVersion.outputs.strictVersion }}
       workingDirectory: ${{ inputs.workingDirectory }}
       publishFromDist: ${{ inputs.publishFromDist }}
-      release_branch: ${{ inputs.release_branch }}
       node_version: ${{ inputs.node_version }}
       prefix: ${{ inputs.prefix }}
       artifactPath: ${{ inputs.artifactPath }}
       workingDirectoryDist: ${{ inputs.workingDirectoryDist }}
+      environment: ${{ inputs.environment }}
 
