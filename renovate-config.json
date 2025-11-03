@@ -45,6 +45,15 @@
       "platformAutomerge": false
     },
     {
+      "groupName": "OpenMFP and Platform Mesh",
+      "automerge": true,
+      "platformAutomerge": true,
+      "matchPackageNames": [
+        "@openmfp{/,}**",
+        "@platform-mesh{/,}**"
+      ]
+    },
+    {
       "groupName": "Fundamental NGX and Angular",
       "matchPackagePrefixes": [
         "@angular-eslint/",
