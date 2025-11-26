@@ -9,6 +9,10 @@ on:
         required: false
         type: boolean
         default: false
+      useMake:
+        required: false
+        type: boolean
+        default: false
       coverageThresholdFile:
         required: false
         type: number
@@ -51,6 +55,10 @@ on:
         required: true
         type: string
       useTask:
+        required: false
+        type: boolean
+        default: false
+      useMake:
         required: false
         type: boolean
         default: false
@@ -97,11 +105,13 @@ jobs:
     uses: ./.github/workflows/job-golang-lint.yml
     with:
       useTask: ${{ inputs.useTask }}
+      useMake: ${{ inputs.useMake }}
 
   testSource:
     uses: ./.github/workflows/job-golang-test-source.yml
     with:
       useTask: ${{ inputs.useTask }}
+      useMake: ${{ inputs.useMake }}
       useLocalCoverageConfig: ${{ inputs.useLocalCoverageConfig }}
       coverageThresholdFile: ${{ inputs.coverageThresholdFile }}
       coverageThresholdPackage: ${{ inputs.coverageThresholdPackage }}
