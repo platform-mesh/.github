@@ -6,6 +6,10 @@ on:
         required: false
         type: boolean
         default: false
+      useMake:
+        required: false
+        type: boolean
+        default: false
       coverageThresholdFile:
         type: number
       coverageThresholdPackage:
@@ -39,11 +43,14 @@ jobs:
         with:
           repo-token: ${{ secrets.GITHUB_TOKEN }}
       - name: Test Go
-        if: ${{ inputs.useTask == false }}
+        if: ${{ inputs.useTask == false  && inputs.useMake == false }}
         run: go test ./... -coverprofile=./cover.out -covermode=atomic -coverpkg=./...
-      - name: Test task
+      - name: Test using task
         if: ${{ inputs.useTask == true }}
         run: task cover
+      - name: Test using make
+        if: ${{ inputs.useMake == true }}
+        run: make test
       - name: Install Code Coverage
         run: go install github.com/vladopajic/go-test-coverage/v2@latest
       - name: Check Test Coverage

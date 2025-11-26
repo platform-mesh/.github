@@ -6,6 +6,10 @@ on:
         required: false
         type: boolean
         default: false
+      useMake:
+        required: false
+        type: boolean
+        default: false
 jobs:
   golangci:
     name: lint
@@ -25,14 +29,17 @@ jobs:
         with:
           repo-token: ${{ secrets.GITHUB_TOKEN }}
       - name: Format
-        if: ${{ !inputs.useTask }}
+        if: ${{ !inputs.useTask && !inputs.useMake }}
         run: go fmt ./...
       - name: golangci-lint
-        if: ${{ !inputs.useTask }}
+        if: ${{ !inputs.useTask  && !inputs.useMake }}
         uses: golangci/golangci-lint-action@4afd733a84b1f43292c63897423277bb7f4313a9 # v8
         with:
           version: latest
           args: --timeout 15m
       - name: lint task
         if: ${{ inputs.useTask }}
-        run: task lint
+        run: task using lint
+      - name: lint using make
+        if: ${{ inputs.useMake }}
+        run: make lint
