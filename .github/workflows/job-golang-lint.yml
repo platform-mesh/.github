@@ -37,9 +37,9 @@ jobs:
         with:
           version: latest
           args: --timeout 15m
-      - name: lint task
+      - name: lint using task
         if: ${{ inputs.useTask }}
-        run: task using lint
+        run: task lint
       - name: lint using make
         if: ${{ inputs.useMake }}
         run: make lint
