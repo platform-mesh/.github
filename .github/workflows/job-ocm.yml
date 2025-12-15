@@ -54,14 +54,18 @@ jobs:
       - name: Prepare Template Variables
         run: |
           IMAGE_NAME=$(yq '.image.name' ${{ inputs.chartPath }}/values.yaml)
+          ORG_REPO=$(echo "$IMAGE_NAME" | sed 's|ghcr.io/||')
+          IMAGE_REPO=https://github.com/$ORG_REPO
+          
           APP_VERSION=$(yq '.appVersion' ${{ inputs.chartPath }}/Chart.yaml)
           CHART_NAME=$(yq '.name' ${{ inputs.chartPath }}/Chart.yaml)
           VERSION=$(yq '.version' ${{ inputs.chartPath }}/Chart.yaml)
           CHART_REPO=https://github.com/${{ github.repository }}
-          ORG_REPO=$(echo "$IMAGE_NAME" | sed 's|ghcr.io/||')
+          
           CHART_OCI_PATH=ghcr.io/${{ github.repository }}/$CHART_NAME
           IMAGE_REPO_SHA=$(gh api repos/$ORG_REPO/git/ref/tags/$APP_VERSION | jq -r '.object.sha')
           
+          echo "IMAGE_REPO=IMAGE_REPO" >> $GITHUB_ENV
           echo "IMAGE_REPO_SHA=$IMAGE_REPO_SHA" >> $GITHUB_ENV
           echo "VERSION=$VERSION" >> $GITHUB_ENV
           echo "IMAGE_NAME=$IMAGE_NAME" >> $GITHUB_ENV
@@ -98,6 +102,7 @@ jobs:
             APP_VERSION=${{ env.APP_VERSION}} \
             IMAGE_NAME=${{ env.IMAGE_NAME}} \
             COMMIT=${{ github.sha }} \
+            IMAGE_REPO=${{ env.IMAGE_REPO }} \
             IMAGE_REPO_SHA=${{ env.IMAGE_REPO_SHA }} \
             CHART_REPO=${{ env.CHART_REPO }} \
             COMPONENT_NAME=${{ inputs.componentName }} \
