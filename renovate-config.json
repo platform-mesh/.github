@@ -17,7 +17,30 @@
   ],
   "packageRules": [
     {
-      "managers": ["npm"],
+      "description": "Use replace strategy for library dependencies to convert to ranges",
+      "matchDepTypes": ["dependencies"],
+      "matchManagers": ["npm"],
+      "matchFileNames": ["package.json"],
+      "matchJsonata": ["$.publishConfig"],
+      "rangeStrategy": "replace"
+    },
+    {
+      "description": "Pin application dependencies for reproducible production builds",
+      "matchDepTypes": ["dependencies"],
+      "matchManagers": ["npm"],
+      "matchJsonata": ["$.private = true and not($.publishConfig)"],
+      "rangeStrategy": "pin"
+    },
+    {
+      "description": "Widen peer dependency ranges to support multiple versions",
+      "matchDepTypes": ["peerDependencies"],
+      "matchManagers": ["npm"],
+      "rangeStrategy": "widen"
+    },
+    {
+      "description": "Pin dev dependencies for reproducible builds",
+      "matchDepTypes": ["devDependencies"],
+      "matchManagers": ["npm"],
       "rangeStrategy": "pin"
     },
     {
