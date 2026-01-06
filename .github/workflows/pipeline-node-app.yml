@@ -29,7 +29,7 @@ on:
 
 jobs:
   auto-labeler:
-    if: ${{ (github.head_ref || github.ref) != format('refs/heads/{0}',inputs.release_branch) }}
+    if: ${{ (github.head_ref || github.ref) != format('refs/heads/{0}',inputs.release_branch) && github.event.pull_request.head.repo.full_name == github.repository }}
     uses: ./.github/workflows/job-auto-labeler.yml
     secrets: inherit
 
