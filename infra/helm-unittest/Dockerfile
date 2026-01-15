@@ -1,4 +1,4 @@
-ARG HELM_VERSION=4.0.1
+ARG HELM_VERSION=4.0.5
 FROM alpine/helm:${HELM_VERSION}
 
 ENV HELM_PLUGINS="/helm-plugins" 
