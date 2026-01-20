@@ -5,7 +5,7 @@ on:
     branches: [ main ]
     paths:
       - '.github/workflows/infra-helm-unittest.yml'
-      - 'infra/helm-unittest'
+      - 'infra/helm-unittest/**'
 
 permissions:
   contents: read
