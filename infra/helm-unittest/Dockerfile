@@ -1,8 +1,8 @@
-ARG HELM_VERSION=4.0.1
+ARG HELM_VERSION=4.0.5
 FROM alpine/helm:${HELM_VERSION}
 
 ENV HELM_PLUGINS="/helm-plugins" 
-ARG HELM_UNITTEST_VERSION=0.5.1
+ARG HELM_UNITTEST_VERSION=1.0.3
 
 RUN apk update && apk add bash curl yq && \
   # The plugin installation using helm plugin install seems to fail, therefore manual install.
