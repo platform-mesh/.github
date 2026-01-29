@@ -61,13 +61,13 @@
       "groupName": "OpenMFP",
       "automerge": true,
       "platformAutomerge": true,
-      "matchPackageNames": ["@openmfp{/,}**"]
+      "matchPackageNames": ["@openmfp/**"]
     },
     {
       "groupName": "Platform Mesh",
       "automerge": true,
       "platformAutomerge": true,
-      "matchPackageNames": ["@platform-mesh{/,}**"]
+      "matchPackageNames": ["@platform-mesh/**"]
     },
     {
       "groupName": "Fundamental NGX and Angular",
