@@ -1,9 +1,6 @@
 {
   "$schema": "https://docs.renovatebot.com/renovate-schema.json",
-  "extends": [
-    "config:base",
-    "helpers:pinGitHubActionDigests"
-  ],
+  "extends": ["config:base", "helpers:pinGitHubActionDigests"],
   "npm": {},
   "automerge": true,
   "automergeType": "pr",
@@ -50,31 +47,27 @@
     },
     {
       "groupName": "NestJS",
-      "matchPackagePrefixes": [
-        "@nestjs/",
-        "axios",
-        "nestjs",
-        "rxjs"
-      ],
+      "matchPackagePrefixes": ["@nestjs/", "axios", "nestjs", "rxjs"],
       "automerge": false,
       "platformAutomerge": false
     },
     {
       "groupName": "Luigi",
-      "matchPackagePrefixes": [
-        "@luigi-project/"
-      ],
+      "matchPackagePrefixes": ["@luigi-project/"],
       "automerge": false,
       "platformAutomerge": false
     },
     {
-      "groupName": "OpenMFP and Platform Mesh",
+      "groupName": "OpenMFP",
       "automerge": true,
       "platformAutomerge": true,
-      "matchPackageNames": [
-        "@openmfp{/,}**",
-        "@platform-mesh{/,}**"
-      ]
+      "matchPackageNames": ["@openmfp{/,}**"]
+    },
+    {
+      "groupName": "Platform Mesh",
+      "automerge": true,
+      "platformAutomerge": true,
+      "matchPackageNames": ["@platform-mesh{/,}**"]
     },
     {
       "groupName": "Fundamental NGX and Angular",
@@ -111,9 +104,7 @@
     },
     {
       "allowedVersions": "<1.4.0",
-      "matchPackageNames": [
-        "k8s.io/client-go"
-      ]
+      "matchPackageNames": ["k8s.io/client-go"]
     }
   ],
   "rebaseWhen": "auto"
