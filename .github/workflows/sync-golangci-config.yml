@@ -1,0 +1,406 @@
+name: Sync GolangCI Config
+
+on:
+  push:
+    branches:
+      - main
+    paths:
+      - '.github/golangci/*.yaml'
+  schedule:
+    # Weekly on Monday at 6 AM UTC
+    - cron: '0 6 * * 1'
+  workflow_dispatch:
+    inputs:
+      dry_run:
+        description: 'Dry run - only discover repos, do not create PRs'
+        required: false
+        type: boolean
+        default: false
+      target_repo:
+        description: 'Target a specific repo (leave empty for all)'
+        required: false
+        type: string
+        default: ''
+
+permissions:
+  contents: read
+
+jobs:
+  discover-repos:
+    runs-on: ubuntu-latest
+    outputs:
+      go_app_repos: ${{ steps.discover.outputs.go_app_repos }}
+      go_module_repos: ${{ steps.discover.outputs.go_module_repos }}
+    steps:
+      - name: Generate a token
+        id: generate-token
+        uses: actions/create-github-app-token@29824e69f54612133e76f7eaac726eef6c875baf # v2
+        with:
+          app-id: "1415820"
+          private-key: ${{ secrets.PM_PUBLISHER_PRIVATE_KEY }}
+          owner: ${{ github.repository_owner }}
+
+      - name: Discover repositories by REPO_TYPE
+        id: discover
+        env:
+          GH_TOKEN: ${{ steps.generate-token.outputs.token }}
+          TARGET_REPO: ${{ inputs.target_repo }}
+        run: |
+          echo "Discovering repositories with REPO_TYPE custom property..."
+
+          # Fetch all repos and filter by custom property
+          # Using REST API as custom_properties is available in standard repo listing
+          go_app_repos=$(gh api "/orgs/platform-mesh/repos" --paginate \
+            -H "Accept: application/vnd.github+json" \
+            --jq '[.[] | select(.custom_properties.REPO_TYPE == "GO_APP" and .archived == false) | .name]')
+
+          go_module_repos=$(gh api "/orgs/platform-mesh/repos" --paginate \
+            -H "Accept: application/vnd.github+json" \
+            --jq '[.[] | select(.custom_properties.REPO_TYPE == "GO_MODULES" and .archived == false) | .name]')
+
+          echo "GO_APP repos found: $go_app_repos"
+          echo "GO_MODULES repos found: $go_module_repos"
+
+          # Filter to specific repo if provided
+          if [[ -n "$TARGET_REPO" ]]; then
+            echo "Filtering to target repo: $TARGET_REPO"
+            # Check if target is in GO_APP list
+            if echo "$go_app_repos" | jq -e --arg repo "$TARGET_REPO" 'index($repo) != null' > /dev/null 2>&1; then
+              go_app_repos=$(echo "[\"$TARGET_REPO\"]")
+              go_module_repos="[]"
+            # Check if target is in GO_MODULES list
+            elif echo "$go_module_repos" | jq -e --arg repo "$TARGET_REPO" 'index($repo) != null' > /dev/null 2>&1; then
+              go_module_repos=$(echo "[\"$TARGET_REPO\"]")
+              go_app_repos="[]"
+            else
+              echo "::warning::Target repo '$TARGET_REPO' not found in GO_APP or GO_MODULES repos"
+              go_app_repos="[]"
+              go_module_repos="[]"
+            fi
+          fi
+
+          # Output results
+          echo "go_app_repos=$go_app_repos" >> "$GITHUB_OUTPUT"
+          echo "go_module_repos=$go_module_repos" >> "$GITHUB_OUTPUT"
+
+          # Summary
+          echo "## Repository Discovery" >> "$GITHUB_STEP_SUMMARY"
+          echo "" >> "$GITHUB_STEP_SUMMARY"
+          echo "### GO_APP Repositories" >> "$GITHUB_STEP_SUMMARY"
+          echo "$go_app_repos" | jq -r '.[]' | while read -r repo; do
+            echo "- $repo" >> "$GITHUB_STEP_SUMMARY"
+          done
+          echo "" >> "$GITHUB_STEP_SUMMARY"
+          echo "### GO_MODULES Repositories" >> "$GITHUB_STEP_SUMMARY"
+          echo "$go_module_repos" | jq -r '.[]' | while read -r repo; do
+            echo "- $repo" >> "$GITHUB_STEP_SUMMARY"
+          done
+
+  sync-go-app-config:
+    needs: discover-repos
+    if: ${{ needs.discover-repos.outputs.go_app_repos != '[]' && inputs.dry_run != true }}
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      max-parallel: 5
+      matrix:
+        repo: ${{ fromJson(needs.discover-repos.outputs.go_app_repos) }}
+    steps:
+      - name: Generate a token
+        id: generate-token
+        uses: actions/create-github-app-token@29824e69f54612133e76f7eaac726eef6c875baf # v2
+        with:
+          app-id: "1415820"
+          private-key: ${{ secrets.PM_PUBLISHER_PRIVATE_KEY }}
+          owner: ${{ github.repository_owner }}
+          repositories: |
+            .github
+            ${{ matrix.repo }}
+
+      - name: Checkout source config
+        uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4
+        with:
+          path: source
+          sparse-checkout: |
+            .github/golangci
+
+      - name: Checkout target repo
+        uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4
+        with:
+          repository: platform-mesh/${{ matrix.repo }}
+          token: ${{ steps.generate-token.outputs.token }}
+          path: target
+
+      - name: Sync config and create PR
+        env:
+          GH_TOKEN: ${{ steps.generate-token.outputs.token }}
+          REPO: ${{ matrix.repo }}
+        run: |
+          cd target
+
+          SOURCE_FILE="../source/.github/golangci/go-app.yaml"
+          TARGET_FILE=".golangci.yaml"
+          BRANCH="automation/sync-golangci-config"
+
+          # Check if source file exists
+          if [[ ! -f "$SOURCE_FILE" ]]; then
+            echo "::error::Source config file not found: $SOURCE_FILE"
+            exit 1
+          fi
+
+          # Compare files if target exists
+          if [[ -f "$TARGET_FILE" ]]; then
+            if diff -q "$SOURCE_FILE" "$TARGET_FILE" > /dev/null 2>&1; then
+              echo "Config is already up to date in $REPO"
+              exit 0
+            fi
+          fi
+
+          # Check for .yml variant
+          if [[ -f ".golangci.yml" ]]; then
+            echo "Found .golangci.yml, will migrate to .yaml extension"
+          fi
+
+          # Configure git
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+
+          # Create or reset branch
+          if git ls-remote --heads origin "$BRANCH" | grep -q "$BRANCH"; then
+            git fetch origin "$BRANCH"
+            git checkout "$BRANCH"
+            git reset --hard origin/main
+          else
+            git checkout -b "$BRANCH"
+          fi
+
+          # Copy config file
+          cp "$SOURCE_FILE" "$TARGET_FILE"
+
+          # Remove .yml variant if exists
+          if [[ -f ".golangci.yml" ]]; then
+            git rm -f ".golangci.yml"
+          fi
+
+          # Stage and commit
+          git add "$TARGET_FILE"
+
+          # Check if there are changes to commit
+          if git diff --staged --quiet; then
+            echo "No changes to commit"
+            exit 0
+          fi
+
+          git commit -m "$(cat <<'EOF'
+          chore: sync golangci-lint configuration
+
+          Synchronize golangci-lint configuration from central .github repository.
+
+          Source: https://github.com/platform-mesh/.github/blob/main/.github/golangci/go-app.yaml
+          EOF
+          )"
+
+          # Push branch
+          git push --force-with-lease origin "$BRANCH"
+
+          # Check for existing PR
+          existing_pr=$(gh pr list \
+            --repo "platform-mesh/$REPO" \
+            --head "$BRANCH" \
+            --state open \
+            --json number \
+            --jq '.[0].number // empty')
+
+          if [[ -n "$existing_pr" ]]; then
+            echo "Updated existing PR #$existing_pr"
+            echo "PR updated: https://github.com/platform-mesh/$REPO/pull/$existing_pr" >> "$GITHUB_STEP_SUMMARY"
+          else
+            # Create PR
+            pr_url=$(gh pr create \
+              --repo "platform-mesh/$REPO" \
+              --title "chore: sync golangci-lint configuration" \
+              --body "$(cat <<'EOF'
+          ## Summary
+
+          This PR synchronizes the golangci-lint configuration from the central `.github` repository.
+
+          - Updates `.golangci.yaml` to match the organization standard
+          - Source: https://github.com/platform-mesh/.github/blob/main/.github/golangci/go-app.yaml
+
+          This is an automated PR created by the [sync-golangci-config workflow](https://github.com/platform-mesh/.github/actions/workflows/sync-golangci-config.yml).
+          EOF
+          )" \
+              --head "$BRANCH")
+
+            echo "Created PR: $pr_url"
+            echo "PR created: $pr_url" >> "$GITHUB_STEP_SUMMARY"
+          fi
+
+  sync-go-module-config:
+    needs: discover-repos
+    if: ${{ needs.discover-repos.outputs.go_module_repos != '[]' && inputs.dry_run != true }}
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      max-parallel: 5
+      matrix:
+        repo: ${{ fromJson(needs.discover-repos.outputs.go_module_repos) }}
+    steps:
+      - name: Generate a token
+        id: generate-token
+        uses: actions/create-github-app-token@29824e69f54612133e76f7eaac726eef6c875baf # v2
+        with:
+          app-id: "1415820"
+          private-key: ${{ secrets.PM_PUBLISHER_PRIVATE_KEY }}
+          owner: ${{ github.repository_owner }}
+          repositories: |
+            .github
+            ${{ matrix.repo }}
+
+      - name: Checkout source config
+        uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4
+        with:
+          path: source
+          sparse-checkout: |
+            .github/golangci
+
+      - name: Checkout target repo
+        uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4
+        with:
+          repository: platform-mesh/${{ matrix.repo }}
+          token: ${{ steps.generate-token.outputs.token }}
+          path: target
+
+      - name: Sync config and create PR
+        env:
+          GH_TOKEN: ${{ steps.generate-token.outputs.token }}
+          REPO: ${{ matrix.repo }}
+        run: |
+          cd target
+
+          SOURCE_FILE="../source/.github/golangci/go-module.yaml"
+          TARGET_FILE=".golangci.yaml"
+          BRANCH="automation/sync-golangci-config"
+
+          # Check if source file exists
+          if [[ ! -f "$SOURCE_FILE" ]]; then
+            echo "::error::Source config file not found: $SOURCE_FILE"
+            exit 1
+          fi
+
+          # Compare files if target exists
+          if [[ -f "$TARGET_FILE" ]]; then
+            if diff -q "$SOURCE_FILE" "$TARGET_FILE" > /dev/null 2>&1; then
+              echo "Config is already up to date in $REPO"
+              exit 0
+            fi
+          fi
+
+          # Check for .yml variant
+          if [[ -f ".golangci.yml" ]]; then
+            echo "Found .golangci.yml, will migrate to .yaml extension"
+          fi
+
+          # Configure git
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+
+          # Create or reset branch
+          if git ls-remote --heads origin "$BRANCH" | grep -q "$BRANCH"; then
+            git fetch origin "$BRANCH"
+            git checkout "$BRANCH"
+            git reset --hard origin/main
+          else
+            git checkout -b "$BRANCH"
+          fi
+
+          # Copy config file
+          cp "$SOURCE_FILE" "$TARGET_FILE"
+
+          # Remove .yml variant if exists
+          if [[ -f ".golangci.yml" ]]; then
+            git rm -f ".golangci.yml"
+          fi
+
+          # Stage and commit
+          git add "$TARGET_FILE"
+
+          # Check if there are changes to commit
+          if git diff --staged --quiet; then
+            echo "No changes to commit"
+            exit 0
+          fi
+
+          git commit -m "$(cat <<'EOF'
+          chore: sync golangci-lint configuration
+
+          Synchronize golangci-lint configuration from central .github repository.
+
+          Source: https://github.com/platform-mesh/.github/blob/main/.github/golangci/go-module.yaml
+          EOF
+          )"
+
+          # Push branch
+          git push --force-with-lease origin "$BRANCH"
+
+          # Check for existing PR
+          existing_pr=$(gh pr list \
+            --repo "platform-mesh/$REPO" \
+            --head "$BRANCH" \
+            --state open \
+            --json number \
+            --jq '.[0].number // empty')
+
+          if [[ -n "$existing_pr" ]]; then
+            echo "Updated existing PR #$existing_pr"
+            echo "PR updated: https://github.com/platform-mesh/$REPO/pull/$existing_pr" >> "$GITHUB_STEP_SUMMARY"
+          else
+            # Create PR
+            pr_url=$(gh pr create \
+              --repo "platform-mesh/$REPO" \
+              --title "chore: sync golangci-lint configuration" \
+              --body "$(cat <<'EOF'
+          ## Summary
+
+          This PR synchronizes the golangci-lint configuration from the central `.github` repository.
+
+          - Updates `.golangci.yaml` to match the organization standard
+          - Source: https://github.com/platform-mesh/.github/blob/main/.github/golangci/go-module.yaml
+
+          This is an automated PR created by the [sync-golangci-config workflow](https://github.com/platform-mesh/.github/actions/workflows/sync-golangci-config.yml).
+          EOF
+          )" \
+              --head "$BRANCH")
+
+            echo "Created PR: $pr_url"
+            echo "PR created: $pr_url" >> "$GITHUB_STEP_SUMMARY"
+          fi
+
+  summary:
+    needs: [discover-repos, sync-go-app-config, sync-go-module-config]
+    if: always()
+    runs-on: ubuntu-latest
+    steps:
+      - name: Generate summary
+        env:
+          GO_APP_REPOS: ${{ needs.discover-repos.outputs.go_app_repos }}
+          GO_MODULE_REPOS: ${{ needs.discover-repos.outputs.go_module_repos }}
+          DRY_RUN: ${{ inputs.dry_run }}
+          APP_RESULT: ${{ needs.sync-go-app-config.result }}
+          MODULE_RESULT: ${{ needs.sync-go-module-config.result }}
+        run: |
+          echo "## GolangCI Config Sync Summary" >> "$GITHUB_STEP_SUMMARY"
+          echo "" >> "$GITHUB_STEP_SUMMARY"
+
+          if [[ "$DRY_RUN" == "true" ]]; then
+            echo "> **Dry Run Mode** - No PRs were created" >> "$GITHUB_STEP_SUMMARY"
+            echo "" >> "$GITHUB_STEP_SUMMARY"
+          fi
+
+          go_app_count=$(echo "$GO_APP_REPOS" | jq 'length')
+          go_module_count=$(echo "$GO_MODULE_REPOS" | jq 'length')
+
+          echo "| Repo Type | Count | Sync Status |" >> "$GITHUB_STEP_SUMMARY"
+          echo "|-----------|-------|-------------|" >> "$GITHUB_STEP_SUMMARY"
+          echo "| GO_APP | $go_app_count | $APP_RESULT |" >> "$GITHUB_STEP_SUMMARY"
+          echo "| GO_MODULES | $go_module_count | $MODULE_RESULT |" >> "$GITHUB_STEP_SUMMARY"
