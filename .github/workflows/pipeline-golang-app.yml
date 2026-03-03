@@ -137,8 +137,26 @@ jobs:
       multiarch: true
     secrets: inherit
 
-  updateVersion:
+  sbom:
     needs: [createVersion, dockerBuildAndPush]
+    if: ${{ (github.head_ref || github.ref) == format('refs/heads/{0}',inputs.release_branch) }}
+    uses: ./.github/workflows/job-sbom.yml
+    with:
+      imageReference: ${{ inputs.imageTagName }}:${{ needs.createVersion.outputs.version }}
+
+  imageOcm:
+    needs: [createVersion, dockerBuildAndPush, sbom]
+    if: ${{ (github.head_ref || github.ref) == format('refs/heads/{0}',inputs.release_branch) }}
+    uses: ./.github/workflows/job-image-ocm.yml
+    secrets: inherit
+    with:
+      imageReference: ${{ inputs.imageTagName }}:${{ needs.createVersion.outputs.version }}
+      appVersion: ${{ needs.createVersion.outputs.version }}
+      repoName: ${{ github.event.repository.name }}
+      commit: ${{ github.sha }}
+
+  updateVersion:
+    needs: [createVersion, dockerBuildAndPush, imageOcm]
     if: ${{ (github.head_ref || github.ref) == format('refs/heads/{0}',inputs.release_branch) }}
     uses: ./.github/workflows/job-chart-version-update.yml
     secrets: inherit
