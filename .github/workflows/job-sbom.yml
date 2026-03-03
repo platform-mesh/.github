@@ -12,14 +12,14 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Generate CycloneDX SBOM
-        uses: anchore/sbom-action@fc46e51e3c532c427df769ee7edcab0e48d6e039 # v0.18.0
+        uses: anchore/sbom-action@17ae1740179002c89186b61233e0f892c3118b11 # v0.23.0
         with:
           image: ${{ inputs.imageReference }}
           format: cyclonedx-json
           output-file: sbom-cyclonedx.json
 
       - name: Generate SPDX SBOM
-        uses: anchore/sbom-action@fc46e51e3c532c427df769ee7edcab0e48d6e039 # v0.18.0
+        uses: anchore/sbom-action@17ae1740179002c89186b61233e0f892c3118b11 # v0.23.0
         with:
           image: ${{ inputs.imageReference }}
           format: spdx-json
