@@ -84,16 +84,16 @@ jobs:
                     imageReference: "{{ .IMAGE_REFERENCE }}"
                 - name: sbom-cyclonedx
                   type: sbom
-                  mediaType: application/vnd.cyclonedx+json
                   input:
                     type: file
                     path: sbom-cyclonedx.json
+                    mediaType: application/vnd.cyclonedx+json
                 - name: sbom-spdx
                   type: sbom
-                  mediaType: application/spdx+json
                   input:
                     type: file
                     path: sbom-spdx.json
+                    mediaType: application/spdx+json
               sources:
                 - name: source
                   type: git
