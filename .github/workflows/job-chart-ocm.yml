@@ -14,6 +14,14 @@ on:
         description: "Chart repository URL (defaults to platform-mesh/helm-charts)"
         type: string
         default: https://github.com/platform-mesh/helm-charts
+      componentConstructorFile:
+        description: "Path to component constructor file"
+        type: string
+        default: .ocm/component-constructor-chart-only.yaml
+      componentName:
+        description: "Component name (e.g., github.com/platform-mesh/helm-charts/security-operator)"
+        required: true
+        type: string
       ocmRegistryUrl:
         description: "OCM registry URL"
         type: string
@@ -87,38 +95,12 @@ jobs:
                         password: ${{ secrets.GITHUB_TOKEN }}
           EOF
 
-      - name: Write component constructor
-        run: |
-          cat <<'EOF' > component-constructor.yaml
-          components:
-            - name: github.com/platform-mesh/helm-charts/{{ .CHART_NAME }}
-              version: "{{ .VERSION }}"
-              provider:
-                name: Platform Mesh Team
-              resources:
-                - name: chart
-                  type: helmChart
-                  relation: external
-                  version: "{{ .VERSION }}"
-                  access:
-                    type: ociArtifact
-                    imageReference: "{{ .CHART_OCI_PATH }}:{{ .VERSION }}"
-              sources:
-                - name: source
-                  type: git
-                  version: "{{ .VERSION }}"
-                  access:
-                    commit: "{{ .COMMIT }}"
-                    repoUrl: "{{ .CHART_REPO }}"
-                    type: gitHub
-          EOF
-
       - name: Create OCM ComponentArchive
         run: |
           ocm_ctf=transport.ctf
-          ./ocm add components -c --templater=go --file "$ocm_ctf" component-constructor.yaml -- \
+          ./ocm add components -c --templater=go --file "$ocm_ctf" ${{ inputs.componentConstructorFile }} -- \
             VERSION=${{ env.VERSION }} \
-            CHART_NAME=${{ inputs.chartName }} \
+            COMPONENT_NAME=${{ inputs.componentName }} \
             CHART_OCI_PATH=${{ env.CHART_OCI_PATH }} \
             CHART_REPO=${{ env.CHART_REPO }} \
             COMMIT=${{ github.sha }}
