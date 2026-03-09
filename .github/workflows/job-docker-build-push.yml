@@ -17,6 +17,7 @@ on:
         required: false
         type: boolean
         default: true
+
 jobs:
   docker:
     runs-on: ${{ (github.head_ref || github.ref) == format('refs/heads/{0}',inputs.release_branch) && 'ubuntu-latest-large' || 'ubuntu-latest' }}
