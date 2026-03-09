@@ -10,6 +10,10 @@ on:
         description: "Name of the chart"
         required: true
         type: string
+      chartRepository:
+        description: "Chart repository URL (defaults to platform-mesh/helm-charts)"
+        type: string
+        default: https://github.com/platform-mesh/helm-charts
       ocmRegistryUrl:
         description: "OCM registry URL"
         type: string
@@ -57,8 +61,8 @@ jobs:
       - name: Prepare template variables
         run: |
           VERSION=$(yq '.version' ${{ inputs.chartPath }}/Chart.yaml)
-          CHART_OCI_PATH=ghcr.io/${{ github.repository }}/${{ inputs.chartName }}
-          CHART_REPO=https://github.com/${{ github.repository }}
+          CHART_OCI_PATH=ghcr.io/platform-mesh/helm-charts/${{ inputs.chartName }}
+          CHART_REPO=${{ inputs.chartRepository }}
 
           echo "VERSION=$VERSION" >> $GITHUB_ENV
           echo "CHART_OCI_PATH=$CHART_OCI_PATH" >> $GITHUB_ENV
