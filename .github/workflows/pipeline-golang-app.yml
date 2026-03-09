@@ -159,6 +159,16 @@ jobs:
       multiarch: true
     secrets: inherit
 
+  updateVersion:
+    needs: [createVersion, dockerBuildAndPush]
+    if: ${{ (github.head_ref || github.ref) == format('refs/heads/{0}',inputs.release_branch) }}
+    uses: ./.github/workflows/job-chart-version-update.yml
+    secrets: inherit
+    with:
+      appVersion: ${{ needs.createVersion.outputs.version }}
+      chart: ${{ github.event.repository.name }}
+      targetRepository: ${{ inputs.repoVersionUpdate }}
+
   sbom:
     needs: [createVersion, dockerBuildAndPush]
     if: ${{ (github.head_ref || github.ref) == format('refs/heads/{0}',inputs.release_branch) }}
@@ -176,13 +186,3 @@ jobs:
       appVersion: ${{ needs.createVersion.outputs.version }}
       repoName: ${{ github.event.repository.name }}
       commit: ${{ github.sha }}
-
-  updateVersion:
-    needs: [createVersion, dockerBuildAndPush, imageOcm]
-    if: ${{ (github.head_ref || github.ref) == format('refs/heads/{0}',inputs.release_branch) }}
-    uses: ./.github/workflows/job-chart-version-update.yml
-    secrets: inherit
-    with:
-      appVersion: ${{ needs.createVersion.outputs.version }}
-      chart: ${{ github.event.repository.name }}
-      targetRepository: ${{ inputs.repoVersionUpdate }}
