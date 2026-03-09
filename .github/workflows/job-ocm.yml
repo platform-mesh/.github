@@ -135,8 +135,12 @@ jobs:
             IMAGE_COMPONENT_NAME="${{ env.CHART_NAME }}"
           fi
 
+          # Derive root component name from chart component name by stripping helm-charts/ prefix
+          ROOT_COMPONENT_NAME="${{ inputs.componentName }}"
+          ROOT_COMPONENT_NAME="${ROOT_COMPONENT_NAME/helm-charts\//}"
+
           gh workflow run pipeline-root-component.yml --repo "platform-mesh/ocm" \
-            -f componentName="${{ inputs.componentName }}" \
+            -f componentName="$ROOT_COMPONENT_NAME" \
             -f chartName="${{ env.CHART_NAME }}" \
             -f chartVersion="${{ env.VERSION }}" \
             -f appVersion="${{ env.APP_VERSION }}" \
