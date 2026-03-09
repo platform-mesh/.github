@@ -17,12 +17,6 @@ on:
         required: false
         type: boolean
         default: true
-      push:
-        description: "Force push even on non-release branches (for PR testing)"
-        required: false
-        type: boolean
-        default: false
-
 jobs:
   docker:
     runs-on: ${{ (github.head_ref || github.ref) == format('refs/heads/{0}',inputs.release_branch) && 'ubuntu-latest-large' || 'ubuntu-latest' }}
@@ -39,7 +33,7 @@ jobs:
       - name: Build and push
         uses: docker/build-push-action@10e90e3645eae34f1e60eeb005ba3a3d33f178e8 # v6
         with:
-          push: ${{ inputs.push || (github.head_ref || github.ref) == format('refs/heads/{0}',inputs.release_branch) }}
+          push: ${{ (github.head_ref || github.ref) == format('refs/heads/{0}',inputs.release_branch) }}
           platforms: ${{ (inputs.multiarch && (github.head_ref || github.ref) == format('refs/heads/{0}',inputs.release_branch)) && 'linux/amd64,linux/arm64' || 'linux/amd64' }}
           tags: ${{ inputs.imageTagName }}:${{ inputs.version }}
           context: .

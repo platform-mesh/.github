@@ -119,17 +119,6 @@ jobs:
       coverageThresholdPackage: ${{ inputs.coverageThresholdPackage }}
       coverageThresholdTotal: ${{ inputs.coverageThresholdTotal }}
 
-  dockerBuild:
-    if: ${{ (github.head_ref || github.ref) != format('refs/heads/{0}',inputs.release_branch) }}
-    uses: ./.github/workflows/job-docker-build-push.yml
-    with:
-      imageTagName: ${{ inputs.imageTagName }}
-      version: pr-${{ github.event.pull_request.number }}
-      release_branch: ${{ inputs.release_branch }}
-      multiarch: false
-      push: true
-    secrets: inherit
-
   dockerBuildAndPush:
     if: ${{ (github.head_ref || github.ref) == format('refs/heads/{0}',inputs.release_branch) }}
     needs: [createVersion,lint,testSource]
