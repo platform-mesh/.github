@@ -9,6 +9,7 @@ on:
 
 jobs:
   sbom:
+    permissions: read-all
     runs-on: ubuntu-latest
     steps:
       - name: Generate CycloneDX SBOM
