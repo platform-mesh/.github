@@ -138,6 +138,14 @@ jobs:
               CHART_OCI_PATH=${{ env.CHART_OCI_PATH }} \
               LOCAL_CHART_PATH=${{ inputs.chartPath }}
           fi
+      - name: Sign OCM component
+        run: |
+          printf '%s' "$OCM_SIGNING_PRIVATE_KEY" > /tmp/ocm-signing.priv
+          ./ocm sign componentversion --signature platform-mesh --private-key /tmp/ocm-signing.priv .ocm/transport.ctf
+          rm -f /tmp/ocm-signing.priv
+        env:
+          OCM_SIGNING_PRIVATE_KEY: ${{ secrets.OCM_SIGNING_PRIVATE_KEY }}
+
       - name: Transfer to OCM REPO
         run: ./ocm transfer ctf --overwrite .ocm/transport.ctf "${{ inputs.ocmRegistryUrl }}"
 

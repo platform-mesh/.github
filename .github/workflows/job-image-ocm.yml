@@ -119,5 +119,13 @@ jobs:
             REPO_NAME=${{ inputs.repoName }} \
             COMMIT=${{ inputs.commit }}
 
+      - name: Sign OCM component
+        run: |
+          printf '%s' "$OCM_SIGNING_PRIVATE_KEY" > /tmp/ocm-signing.priv
+          ./ocm sign componentversion --signature platform-mesh --private-key /tmp/ocm-signing.priv transport.ctf
+          rm -f /tmp/ocm-signing.priv
+        env:
+          OCM_SIGNING_PRIVATE_KEY: ${{ secrets.OCM_SIGNING_PRIVATE_KEY }}
+
       - name: Transfer to OCM registry
         run: ./ocm transfer ctf --overwrite transport.ctf "${{ inputs.ocmRegistryUrl }}"
