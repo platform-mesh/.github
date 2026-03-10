@@ -91,6 +91,9 @@ jobs:
           GH_TOKEN: ${{ steps.app-token.outputs.token }}
       - name: Write Credentials file
         run: |
+          OCM_REGISTRY_URL="${{ inputs.ocmRegistryUrl }}"
+          OCM_HOSTNAME="${OCM_REGISTRY_URL%%/*}"
+          OCM_PATHPREFIX="${OCM_REGISTRY_URL#*/}"
           cat <<EOF > $HOME/.ocmconfig
           type: generic.config.ocm.software/v1
           configurations:
@@ -99,8 +102,8 @@ jobs:
                 - identity:
                     type: OCIRegistry
                     scheme: https
-                    hostname: ghcr.io
-                    pathprefix: platform-mesh
+                    hostname: ${OCM_HOSTNAME}
+                    pathprefix: ${OCM_PATHPREFIX}
                   credentials:
                     - type: Credentials
                       properties:
@@ -111,18 +114,30 @@ jobs:
         run: |
           ocm_ctf=.ocm/transport.ctf
           mkdir -p "$(dirname "$ocm_ctf")"
-          ./ocm add components -c --templater=go --file "$ocm_ctf" ${{ inputs.componentConstructorFile }} -- \
-            VERSION=${{ env.VERSION }} \
-            APP_VERSION=${{ env.APP_VERSION}} \
-            IMAGE_NAME=${{ env.IMAGE_NAME}} \
-            COMMIT=${{ github.sha }} \
-            IMAGE_REPO=${{ env.IMAGE_REPO }} \
-            IMAGE_REPO_SHA=${{ env.IMAGE_REPO_SHA }} \
-            CHART_REPO=${{ env.CHART_REPO }} \
-            COMPONENT_NAME=${{ inputs.componentName }} \
-            CHART_NAME=${{ env.CHART_NAME }} \
-            CHART_OCI_PATH=${{ env.CHART_OCI_PATH }} \
-            LOCAL_CHART_PATH=${{ inputs.chartPath }}
+          if [ "${{ inputs.chartOnly }}" == "true" ]; then
+            ./ocm add components -c --templater=go --file "$ocm_ctf" ${{ inputs.componentConstructorFile }} -- \
+              VERSION=${{ env.VERSION }} \
+              APP_VERSION=${{ env.APP_VERSION }} \
+              COMMIT=${{ github.sha }} \
+              CHART_REPO=${{ env.CHART_REPO }} \
+              COMPONENT_NAME=${{ inputs.componentName }} \
+              CHART_NAME=${{ env.CHART_NAME }} \
+              CHART_OCI_PATH=${{ env.CHART_OCI_PATH }} \
+              LOCAL_CHART_PATH=${{ inputs.chartPath }}
+          else
+            ./ocm add components -c --templater=go --file "$ocm_ctf" ${{ inputs.componentConstructorFile }} -- \
+              VERSION=${{ env.VERSION }} \
+              APP_VERSION=${{ env.APP_VERSION }} \
+              IMAGE_NAME=${{ env.IMAGE_NAME }} \
+              COMMIT=${{ github.sha }} \
+              IMAGE_REPO=${{ env.IMAGE_REPO }} \
+              IMAGE_REPO_SHA=${{ env.IMAGE_REPO_SHA }} \
+              CHART_REPO=${{ env.CHART_REPO }} \
+              COMPONENT_NAME=${{ inputs.componentName }} \
+              CHART_NAME=${{ env.CHART_NAME }} \
+              CHART_OCI_PATH=${{ env.CHART_OCI_PATH }} \
+              LOCAL_CHART_PATH=${{ inputs.chartPath }}
+          fi
       - name: Transfer to OCM REPO
         run: ./ocm transfer ctf --overwrite .ocm/transport.ctf "${{ inputs.ocmRegistryUrl }}"
 

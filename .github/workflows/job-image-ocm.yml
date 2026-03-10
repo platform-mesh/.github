@@ -52,6 +52,9 @@ jobs:
 
       - name: Write OCM credentials file
         run: |
+          OCM_REGISTRY_URL="${{ inputs.ocmRegistryUrl }}"
+          OCM_HOSTNAME="${OCM_REGISTRY_URL%%/*}"
+          OCM_PATHPREFIX="${OCM_REGISTRY_URL#*/}"
           cat <<EOF > $HOME/.ocmconfig
           type: generic.config.ocm.software/v1
           configurations:
@@ -60,8 +63,8 @@ jobs:
                 - identity:
                     type: OCIRegistry
                     scheme: https
-                    hostname: ghcr.io
-                    pathprefix: platform-mesh
+                    hostname: ${OCM_HOSTNAME}
+                    pathprefix: ${OCM_PATHPREFIX}
                   credentials:
                     - type: Credentials
                       properties:
