@@ -1,0 +1,131 @@
+name: Image OCM Component
+on:
+  workflow_call:
+    inputs:
+      imageReference:
+        description: "Full image reference (e.g., ghcr.io/platform-mesh/security-operator:1.2.3)"
+        required: true
+        type: string
+      appVersion:
+        description: "Version for the component (matches image tag)"
+        required: true
+        type: string
+      repoName:
+        description: "Source repository name (for component naming and source metadata)"
+        required: true
+        type: string
+      commit:
+        description: "Git commit SHA for provenance"
+        required: true
+        type: string
+      ocmRegistryUrl:
+        description: "OCM registry URL"
+        type: string
+        default: ghcr.io/platform-mesh
+
+jobs:
+  image-ocm:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      packages: write
+    steps:
+      - name: Download SBOM artifacts
+        uses: actions/download-artifact@fa0a91b85d4f404e444e00e005971372dc801d16 # v4
+        with:
+          name: sbom
+
+      - name: Setup OCM CLI
+        run: |
+          REPO=${repo:=open-component-model/ocm}
+          if [ -z "$version" -o "$version" == latest ]; then
+            version="$(basename "$(curl -Ls -o /dev/null -w %{url_effective} https://github.com/$REPO/releases/latest)")"
+            echo "Selecting latest version: $version"
+          fi
+          VERSION=${version#v}
+          ARCHIVE_FILE="ocm-${VERSION}-linux-amd64.tar.gz"
+          URL="https://github.com/$REPO/releases/download/v${VERSION}/$ARCHIVE_FILE"
+          echo "Installing ocm-cli version $version from $REPO"
+          curl -LsS -o ocm-cli.tgz "$URL"
+          tar --overwrite -xvzf ocm-cli.tgz >/dev/null
+          chmod a+x ocm
+
+      - name: Write OCM credentials file
+        run: |
+          OCM_REGISTRY_URL="${{ inputs.ocmRegistryUrl }}"
+          OCM_HOSTNAME="${OCM_REGISTRY_URL%%/*}"
+          OCM_PATHPREFIX="${OCM_REGISTRY_URL#*/}"
+          cat <<EOF > $HOME/.ocmconfig
+          type: generic.config.ocm.software/v1
+          configurations:
+            - type: credentials.config.ocm.software
+              consumers:
+                - identity:
+                    type: OCIRegistry
+                    scheme: https
+                    hostname: ${OCM_HOSTNAME}
+                    pathprefix: ${OCM_PATHPREFIX}
+                  credentials:
+                    - type: Credentials
+                      properties:
+                        username: github
+                        password: ${{ secrets.GITHUB_TOKEN }}
+          EOF
+
+      - name: Write component constructor
+        run: |
+          cat <<'EOF' > component-constructor.yaml
+          components:
+            - name: github.com/platform-mesh/images/{{ .REPO_NAME }}
+              version: "{{ .APP_VERSION }}"
+              provider:
+                name: Platform Mesh Team
+              resources:
+                - name: image
+                  type: ociImage
+                  relation: external
+                  version: "{{ .APP_VERSION }}"
+                  access:
+                    type: ociArtifact
+                    imageReference: "{{ .IMAGE_REFERENCE }}"
+                - name: sbom-cyclonedx
+                  type: sbom
+                  input:
+                    type: file
+                    path: sbom-cyclonedx.json
+                    mediaType: application/vnd.cyclonedx+json
+                - name: sbom-spdx
+                  type: sbom
+                  input:
+                    type: file
+                    path: sbom-spdx.json
+                    mediaType: application/spdx+json
+              sources:
+                - name: source
+                  type: git
+                  version: "{{ .APP_VERSION }}"
+                  access:
+                    commit: "{{ .COMMIT }}"
+                    repoUrl: https://github.com/platform-mesh/{{ .REPO_NAME }}
+                    type: gitHub
+          EOF
+
+      - name: Create OCM ComponentArchive
+        run: |
+          ocm_ctf=transport.ctf
+          ./ocm add components -c --templater=go --file "$ocm_ctf" component-constructor.yaml -- \
+            APP_VERSION=${{ inputs.appVersion }} \
+            IMAGE_REFERENCE=${{ inputs.imageReference }} \
+            REPO_NAME=${{ inputs.repoName }} \
+            COMMIT=${{ inputs.commit }}
+
+      - name: Sign OCM component
+        run: |
+          printf '%s' "$OCM_SIGNING_PRIVATE_KEY" > /tmp/ocm-signing.priv
+          ./ocm sign componentversion --signature platform-mesh --private-key /tmp/ocm-signing.priv transport.ctf
+          rm -f /tmp/ocm-signing.priv
+        env:
+          OCM_SIGNING_PRIVATE_KEY: ${{ secrets.OCM_SIGNING_PRIVATE_KEY }}
+
+      - name: Transfer to OCM registry
+        run: ./ocm transfer ctf --overwrite transport.ctf "${{ inputs.ocmRegistryUrl }}"
