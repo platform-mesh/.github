@@ -21,7 +21,7 @@ on:
 jobs:
   docker:
     runs-on: ${{ (github.head_ref || github.ref) == format('refs/heads/{0}',inputs.release_branch) && 'ubuntu-latest-large' || 'ubuntu-latest' }}
-    timeout-minutes: 30
+    timeout-minutes: 60
     steps:
       - name: Login to GitHub Container Registry
         uses: docker/login-action@c94ce9fb468520275223c153574b00df6fe4bcc9 # v3
