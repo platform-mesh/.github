@@ -1,5 +1,5 @@
 <p align="center">
-  <img alt="KubeCon Amsterdam Banner" src="kubecon_amsterdam_banner.svg"/>
+  <img alt="KubeCon Amsterdam Banner" src="banner.svg"/>
 </p>
 
 # Welcome to the Platform Mesh Project
