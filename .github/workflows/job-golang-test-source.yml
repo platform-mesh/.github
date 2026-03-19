@@ -52,7 +52,13 @@ jobs:
         if: ${{ inputs.useMake == true }}
         run: make test
       - name: Install Code Coverage
-        run: go install github.com/vladopajic/go-test-coverage/v2@latest
+        run: |
+          GO_MINOR=$(go env GOVERSION | sed 's/go1\.\([0-9]*\).*/\1/')
+          if [ "$GO_MINOR" -gt 25 ]; then
+            go install github.com/vladopajic/go-test-coverage/v2@latest
+          else
+            go install github.com/vladopajic/go-test-coverage/v2@v2.17.1
+          fi
       - name: Check Test Coverage
         run: go-test-coverage --threshold-file ${{ inputs. coverageThresholdFile }} --threshold-package ${{ inputs. coverageThresholdPackage }} --threshold-total ${{ inputs. coverageThresholdTotal }} --profile cover.out
         if: ${{ inputs.useLocalCoverageConfig == false }}
