@@ -54,11 +54,8 @@ jobs:
       - name: Install Code Coverage
         run: |
           GO_MINOR=$(go env GOVERSION | sed 's/go1\.\([0-9]*\).*/\1/')
-          if [ "$GO_MINOR" -lt 26 ]; then
-            go install github.com/vladopajic/go-test-coverage/v2@v2.17.1
-          else
-            go install github.com/vladopajic/go-test-coverage/v2@latest
-          fi
+          VERSION=$([ "$GO_MINOR" -lt 26 ] && echo "v2.17.1" || echo "latest")
+          go install github.com/vladopajic/go-test-coverage/v2@${VERSION}
       - name: Check Test Coverage
         run: go-test-coverage --threshold-file ${{ inputs. coverageThresholdFile }} --threshold-package ${{ inputs. coverageThresholdPackage }} --threshold-total ${{ inputs. coverageThresholdTotal }} --profile cover.out
         if: ${{ inputs.useLocalCoverageConfig == false }}
