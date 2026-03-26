@@ -10,7 +10,7 @@ If you believe you have found a security vulnerability in any platform-mesh repo
 
 Instead, please use one of the following channels:
 
-  - [GitHub Security Advisories](https://github.com/platform-mesh/.github/security/advisories) to privately report a vulnerability.
+  - **GitHub Security Advisories** — navigate to the **Security** tab of the affected repository and select **"Report a vulnerability"** to privately report an advisory.
   - Email: [platform-mesh-security@lists.neonephos.org](mailto:platform-mesh-security@lists.neonephos.org)
 
 Please include the requested information listed below (as much as you can provide) to help us better understand the nature and scope of the possible issue:
