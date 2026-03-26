@@ -1,18 +1,17 @@
-<!-- START SAP SECURITY.MD V0.0.1 BLOCK -->
-<!-- Please do not remove the version header, this is needed for automatic updates of the SECURITY.md -->
-# SAP Open Source Security Policy
+# Platform Mesh Security Policy
 
-SAP takes the security of our software products and services seriously, which includes all source code repositories managed through our GitHub organizations, including our primary [SAP](https://github.com/SAP), [SAP-docs](https://github.com/SAP-docs) organizations as well as [our other GitHub organizations and projects](https://opensource.sap.com).
+The Platform Mesh project takes the security of our software seriously, including all source code repositories managed through the [platform-mesh](https://github.com/platform-mesh) GitHub organization.
 
-If you believe you have found a security vulnerability in any SAP-owned repository, please report it to us as described below.
+If you believe you have found a security vulnerability in any platform-mesh repository, please report it to us as described below.
 
 ## Reporting Security Issues
 
 **Please do not report security vulnerabilities through public GitHub issues.**
 
-Instead, please report them via the SAP Trust Center at [https://www.sap.com/about/trust-center/security/incident-management.html](https://www.sap.com/about/trust-center/security/incident-management.html).
+Instead, please use one of the following channels:
 
-If you prefer to submit via email, please send an email to [secure@sap.com](mailto:secure@sap.com). If possible, encrypt your message with our PGP key; please download it from the [SAP Trust Center](https://www.sap.com/keyblock).
+  - [GitHub Security Advisories](https://github.com/platform-mesh/.github/security/advisories) to privately report a vulnerability.
+  - Email: [platform-mesh-security@lists.neonephos.org](mailto:platform-mesh-security@lists.neonephos.org)
 
 Please include the requested information listed below (as much as you can provide) to help us better understand the nature and scope of the possible issue:
 
@@ -31,12 +30,16 @@ This information will help us triage your report more quickly.
 
 We prefer all communications to be in English.
 
-## Disclosure Guidelines
+## Disclosure Policy
 
-We like to ask you to follow the [Disclosure Guidelines for SAP Security Advisories](https://www.sap.com/documents/2022/02/9ccd9ca0-167e-0010-bca6-c68f7e60039b.html).
+We follow the principle of [Coordinated Vulnerability Disclosure](https://en.wikipedia.org/wiki/Coordinated_vulnerability_disclosure). We ask that you:
 
-## SAP Internal Response Process
+  - Allow us a reasonable time to investigate and address the issue before making any information public.
+  - Make a good faith effort to avoid privacy violations, data destruction, and disruption of services.
+  - Do not exploit the vulnerability beyond what is necessary to verify it.
 
-As an SAP employee, please check our internal open source security response process ([go/oss-security-response](https://go.sap.corp/oss-security-response)) for further details on how to handle security incidents.
+We commit to:
 
-<!-- END SAP SECURITY.MD V0.0.1 BLOCK -->
+  - Acknowledging receipt of your vulnerability report.
+  - Providing an estimated timeline for a fix.
+  - Notifying you when the vulnerability is resolved.
