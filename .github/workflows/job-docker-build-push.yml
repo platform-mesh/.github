@@ -41,7 +41,6 @@ jobs:
           secrets: |
             github_token=${{ secrets.GITHUB_TOKEN }}
             common_repository_token=${{ secrets.COMMON_REPOSITORY_TOKEN }}
-      - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6
       - name: Create Release
         if: ${{ (github.head_ref || github.ref) == format('refs/heads/{0}',inputs.release_branch) }}
         uses: ncipollo/release-action@339a81892b84b4eeb0f6e744e4574d79d0d9b8dd # v1.21.0
