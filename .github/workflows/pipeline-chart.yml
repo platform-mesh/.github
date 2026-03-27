@@ -68,7 +68,7 @@ jobs:
   ocm:
     if: ${{ !inputs.disableOCM && (github.head_ref || github.ref) == format('refs/heads/{0}',inputs.release_branch) }}
     needs: [release]
-    uses: platform-mesh/.github/.github/workflows/job-ocm.yml@f3aaa6f289ab188f46371a5bf9da6f0897038861 # main
+    uses: platform-mesh/.github/.github/workflows/job-ocm.yml@07550bab80de7691f4947214ee342351896e209b # main
     secrets: inherit
     with:
       chartPath: ${{ inputs.chartFolder }}/${{ inputs.chartName }}
