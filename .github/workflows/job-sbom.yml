@@ -1,0 +1,36 @@
+name: SBOM Generation
+on:
+  workflow_call:
+    inputs:
+      imageReference:
+        description: "Full image reference (e.g., ghcr.io/platform-mesh/security-operator:1.2.3)"
+        required: true
+        type: string
+
+jobs:
+  sbom:
+    permissions: read-all
+    runs-on: ubuntu-latest
+    steps:
+      - name: Generate CycloneDX SBOM
+        uses: anchore/sbom-action@17ae1740179002c89186b61233e0f892c3118b11 # v0.23.0
+        with:
+          image: ${{ inputs.imageReference }}
+          format: cyclonedx-json
+          output-file: sbom-cyclonedx.json
+
+      - name: Generate SPDX SBOM
+        uses: anchore/sbom-action@17ae1740179002c89186b61233e0f892c3118b11 # v0.23.0
+        with:
+          image: ${{ inputs.imageReference }}
+          format: spdx-json
+          output-file: sbom-spdx.json
+
+      - name: Upload SBOM artifacts
+        uses: actions/upload-artifact@65c4c4a1ddee5b72f698fdd19549f0f0fb45cf08 # v4
+        with:
+          name: sbom
+          path: |
+            sbom-cyclonedx.json
+            sbom-spdx.json
+          retention-days: 1
