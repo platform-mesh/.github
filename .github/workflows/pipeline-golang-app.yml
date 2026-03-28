@@ -1,6 +1,7 @@
 name: pipeline
 permissions:
-  contents: read
+  contents: write
+  packages: write
 on:
   workflow_call:
     inputs:
@@ -118,6 +119,14 @@ jobs:
       coverageThresholdFile: ${{ inputs.coverageThresholdFile }}
       coverageThresholdPackage: ${{ inputs.coverageThresholdPackage }}
       coverageThresholdTotal: ${{ inputs.coverageThresholdTotal }}
+
+  dockerBuild:
+    if: ${{ (github.head_ref || github.ref) != format('refs/heads/{0}',inputs.release_branch) }}
+    uses: ./.github/workflows/job-docker-build-push.yml
+    with:
+      imageTagName: ${{ inputs.imageTagName }}
+      release_branch: ${{ inputs.release_branch }}
+    secrets: inherit
 
   dockerBuildAndPush:
     if: ${{ (github.head_ref || github.ref) == format('refs/heads/{0}',inputs.release_branch) }}
