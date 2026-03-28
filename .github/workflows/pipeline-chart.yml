@@ -33,6 +33,16 @@ on:
         required: false
         type: string
         default: .ocm/component-constructor.yaml
+      chartOnly:
+        description: "If true, builds chart-only component and triggers root component pipeline"
+        required: false
+        type: boolean
+        default: false
+      imageComponentName:
+        description: "Image component name suffix for root component (defaults to chart name)"
+        required: false
+        type: string
+        default: ''
     outputs:
       version:
         description: "The created Version"
@@ -72,8 +82,10 @@ jobs:
     secrets: inherit
     with:
       chartPath: ${{ inputs.chartFolder }}/${{ inputs.chartName }}
-      componentName: github.com/platform-mesh/${{ inputs.chartName }}
+      componentName: ${{ inputs.chartOnly && format('github.com/platform-mesh/helm-charts/{0}', inputs.chartName) || format('github.com/platform-mesh/{0}', inputs.chartName) }}
       componentConstructorFile: ${{ inputs.componentConstructorFile }}
+      chartOnly: ${{ inputs.chartOnly }}
+      imageComponentName: ${{ inputs.imageComponentName }}
 
   pm-ocm:
     if: ${{ !inputs.disableOCM && (github.head_ref || github.ref) == format('refs/heads/{0}',inputs.release_branch) }}
