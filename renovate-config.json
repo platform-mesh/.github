@@ -94,6 +94,12 @@
       "platformAutomerge": false
     },
     {
+      "description": "Trust our own shared actions repo — follow main branch without digest pinning",
+      "matchPackageNames": ["platform-mesh/.github"],
+      "matchManagers": ["github-actions"],
+      "pinDigests": false
+    },
+    {
       "groupName": "Github Actions",
       "matchPackagePrefixes": [
         "@actions/upload-artifact",
