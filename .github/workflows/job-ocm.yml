@@ -19,6 +19,9 @@ on:
 jobs:
   ocm:
     runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      packages: write
     steps:
       - name: Create Github App Token
         uses: actions/create-github-app-token@f8d387b68d61c58ab83c6c016672934102569859 # v3
