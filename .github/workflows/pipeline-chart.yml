@@ -1,4 +1,7 @@
 name: pipeline-chart
+permissions:
+  contents: write
+  packages: write
 on:
   workflow_call:
     inputs:
