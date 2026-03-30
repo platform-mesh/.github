@@ -16,12 +16,12 @@ on:
         type: string
         default: ghcr.io/platform-mesh
       chartOnly:
-        description: "If true, builds chart-only component and triggers root component pipeline"
+        description: "If true, builds chart-only component and triggers service component pipeline"
         required: false
         type: boolean
         default: false
       imageComponentName:
-        description: "Image component name suffix for root component (defaults to chart name)"
+        description: "Image component name suffix for service component (defaults to chart name)"
         required: false
         type: string
         default: ''
@@ -159,7 +159,7 @@ jobs:
       - name: Transfer to OCM REPO
         run: ./ocm transfer ctf --overwrite .ocm/transport.ctf "${{ inputs.ocmRegistryUrl }}"
 
-      - name: Trigger root component pipeline (chart-only mode)
+      - name: Trigger service component pipeline (chart-only mode)
         if: ${{ inputs.chartOnly == true }}
         run: |
           # Determine image component name
@@ -168,12 +168,12 @@ jobs:
             IMAGE_COMPONENT_NAME="${{ env.CHART_NAME }}"
           fi
 
-          # Derive root component name from chart component name by stripping helm-charts/ prefix
-          ROOT_COMPONENT_NAME="${{ inputs.componentName }}"
-          ROOT_COMPONENT_NAME="${ROOT_COMPONENT_NAME/helm-charts\//}"
+          # Derive service component name from chart component name by stripping helm-charts/ prefix
+          SERVICE_COMPONENT_NAME="${{ inputs.componentName }}"
+          SERVICE_COMPONENT_NAME="${SERVICE_COMPONENT_NAME/helm-charts\//}"
 
-          gh workflow run pipeline-root-component.yml --repo "platform-mesh/ocm" \
-            -f componentName="$ROOT_COMPONENT_NAME" \
+          gh workflow run pipeline-service-component.yml --repo "platform-mesh/ocm" \
+            -f componentName="$SERVICE_COMPONENT_NAME" \
             -f chartName="${{ env.CHART_NAME }}" \
             -f chartVersion="${{ env.VERSION }}" \
             -f appVersion="${{ env.APP_VERSION }}" \

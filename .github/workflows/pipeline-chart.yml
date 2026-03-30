@@ -37,12 +37,12 @@ on:
         type: string
         default: .ocm/component-constructor.yaml
       chartOnly:
-        description: "If true, builds chart-only component and triggers root component pipeline"
+        description: "If true, builds chart-only component and triggers service component pipeline"
         required: false
         type: boolean
         default: false
       imageComponentName:
-        description: "Image component name suffix for root component (defaults to chart name)"
+        description: "Image component name suffix for service component (defaults to chart name)"
         required: false
         type: string
         default: ''
