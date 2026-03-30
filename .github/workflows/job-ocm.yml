@@ -149,7 +149,6 @@ jobs:
             --signature platform-mesh \
             --private-key /tmp/ocm-signing.priv \
             --public-key /tmp/ocm-signing.cert \
-            --issuer "CN=github.com/platform-mesh/${{ github.event.repository.name }}" \
             .ocm/transport.ctf
           rm -f /tmp/ocm-signing.priv /tmp/ocm-signing.cert
         env:
