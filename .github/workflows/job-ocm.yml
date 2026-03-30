@@ -144,16 +144,13 @@ jobs:
       - name: Sign OCM component
         run: |
           printf '%s' "$OCM_SIGNING_PRIVATE_KEY" > /tmp/ocm-signing.priv
-          printf '%s' "$OCM_SIGNING_CERT" > /tmp/ocm-signing.cert
           ./ocm sign componentversion \
             --signature platform-mesh \
             --private-key /tmp/ocm-signing.priv \
-            --public-key /tmp/ocm-signing.cert \
             .ocm/transport.ctf
-          rm -f /tmp/ocm-signing.priv /tmp/ocm-signing.cert
+          rm -f /tmp/ocm-signing.priv
         env:
           OCM_SIGNING_PRIVATE_KEY: ${{ secrets.OCM_SIGNING_PRIVATE_KEY }}
-          OCM_SIGNING_CERT: ${{ secrets.OCM_SIGNING_CERT }}
 
       - name: Transfer to OCM REPO
         run: ./ocm transfer ctf --overwrite .ocm/transport.ctf "${{ inputs.ocmRegistryUrl }}"
