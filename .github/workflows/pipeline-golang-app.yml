@@ -1,4 +1,7 @@
 name: pipeline
+permissions:
+  contents: write
+  packages: write
 on:
   workflow_call:
     inputs:
@@ -123,7 +126,6 @@ jobs:
     with:
       imageTagName: ${{ inputs.imageTagName }}
       release_branch: ${{ inputs.release_branch }}
-      multiarch: false
     secrets: inherit
 
   dockerBuildAndPush:
@@ -146,3 +148,21 @@ jobs:
       appVersion: ${{ needs.createVersion.outputs.version }}
       chart: ${{ github.event.repository.name }}
       targetRepository: ${{ inputs.repoVersionUpdate }}
+
+  sbom:
+    needs: [createVersion, dockerBuildAndPush]
+    if: ${{ (github.head_ref || github.ref) == format('refs/heads/{0}',inputs.release_branch) }}
+    uses: ./.github/workflows/job-sbom.yml
+    with:
+      imageReference: ${{ inputs.imageTagName }}:${{ needs.createVersion.outputs.version }}
+
+  imageOcm:
+    needs: [createVersion, dockerBuildAndPush, sbom]
+    if: ${{ (github.head_ref || github.ref) == format('refs/heads/{0}',inputs.release_branch) }}
+    uses: ./.github/workflows/job-image-ocm.yml
+    secrets: inherit
+    with:
+      imageReference: ${{ inputs.imageTagName }}:${{ needs.createVersion.outputs.version }}
+      appVersion: ${{ needs.createVersion.outputs.version }}
+      repoName: ${{ github.event.repository.name }}
+      commit: ${{ github.sha }}
