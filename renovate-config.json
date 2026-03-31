@@ -5,6 +5,9 @@
   "automerge": true,
   "automergeType": "pr",
   "autoapprove": true,
+  // Supply chain protection: delay merging packages until they are at least 7 days old.
+  // This gives security researchers and automated tools time to detect malicious releases.
+  // Applies globally to all datasources (npm, Docker, Go, Maven, Helm, etc.).
   "minimumReleaseAge": "7 days",
   "platformAutomerge": true,
   "postUpdateOptions": [
