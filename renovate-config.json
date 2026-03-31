@@ -5,6 +5,7 @@
   "automerge": true,
   "automergeType": "pr",
   "autoapprove": true,
+  "minimumReleaseAge": "7 days",
   "platformAutomerge": true,
   "postUpdateOptions": [
     "gomodUpdateImportPaths",
