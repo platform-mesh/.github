@@ -1,4 +1,8 @@
 name: pipeline
+permissions:
+  contents: write
+  issues: write
+  pull-requests: write
 on:
   workflow_call:
     inputs:
