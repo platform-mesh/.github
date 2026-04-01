@@ -1,0 +1,38 @@
+name: pipeline-chart-validation
+permissions:
+  contents: read
+  packages: read
+on:
+  workflow_call:
+    inputs:
+      chartRepos:
+        required: false
+        type: string
+        default: ''
+      chartFolder:
+        required: false
+        type: string
+        default: 'charts'
+      chartName:
+        required: true
+        type: string
+      additionalTestFilesCommand:
+        required: false
+        type: string
+        default: '-f chart/test-values.yaml'
+
+jobs:
+  testChart:
+    uses: ./.github/workflows/job-test-chart.yml
+    with:
+      chartsFolder: ${{ inputs.chartFolder }}
+      chartName: ${{ inputs.chartName }}
+      additionalTestFilesCommand: ${{ inputs.additionalTestFilesCommand }}
+      chartRepos: ${{ inputs.chartRepos }}
+    secrets: inherit
+
+  checkHelmDocs:
+    uses: ./.github/workflows/job-check-helm-chart-docs.yml
+    with:
+      chartFolder: ${{ inputs.chartFolder }}/${{ inputs.chartName }}
+    secrets: inherit
