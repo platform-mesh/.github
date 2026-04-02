@@ -137,6 +137,7 @@ jobs:
           rm -f /tmp/ocm-signing.priv /tmp/ocm-signing.cert /tmp/ca.cert
         env:
           OCM_SIGNING_PRIVATE_KEY: ${{ secrets.OCM_SIGNING_PRIVATE_KEY }}
+          OCM_SIGNING_CERT: ${{ secrets. OCM_SIGNING_CERT }}
 
       - name: Transfer to OCM registry
         run: ./ocm transfer ctf --overwrite transport.ctf "${{ inputs.ocmRegistryUrl }}"
