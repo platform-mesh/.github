@@ -20,7 +20,7 @@ jobs:
           image: ${{ inputs.imageReference }}
           format: cyclonedx-json
           output-file: sbom-cyclonedx.json
-          registry-token: ${{ github.token }}
+          github-token: ${{ github.token }}
 
       - name: Generate SPDX SBOM
         uses: anchore/sbom-action@17ae1740179002c89186b61233e0f892c3118b11 # v0.23.0
@@ -28,7 +28,7 @@ jobs:
           image: ${{ inputs.imageReference }}
           format: spdx-json
           output-file: sbom-spdx.json
-          registry-token: ${{ github.token }}
+          github-token: ${{ github.token }}
 
       - name: Upload SBOM artifacts
         uses: actions/upload-artifact@65c4c4a1ddee5b72f698fdd19549f0f0fb45cf08 # v4
