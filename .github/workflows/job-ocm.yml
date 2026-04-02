@@ -148,10 +148,12 @@ jobs:
 
       - name: Sign OCM component
         run: |
+          component_name="${{ inputs.componentName }}"
+          chart_name="${component_name##*/}"
           printf '%s' "$OCM_SIGNING_PRIVATE_KEY" > /tmp/ocm-signing.priv
           printf '%s' "$OCM_SIGNING_CERT" > /tmp/ocm-signing.cert
           ./ocm sign componentversion \
-            --signature platform-mesh \
+            --signature "${chart_name}.platform-mesh" \
             --private-key /tmp/ocm-signing.priv \
             --public-key /tmp/ocm-signing.cert \
             --ca-cert /tmp/ca.cert \
