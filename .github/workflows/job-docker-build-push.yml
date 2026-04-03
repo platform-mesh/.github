@@ -48,7 +48,7 @@ jobs:
             common_repository_token=${{ secrets.COMMON_REPOSITORY_TOKEN }}
       - name: Install Cosign
         if: ${{ (github.head_ref || github.ref) == format('refs/heads/{0}',inputs.release_branch) }}
-        uses: sigstore/cosign-installer@3454372f43399081ed03b604cb2d021dabca52bb # v3.8.2
+        uses: sigstore/cosign-installer@7e8b541eb2e61bf99390e1afd4be13a184e9ebc5 # v3.10.1
       - name: Sign container image
         if: ${{ (github.head_ref || github.ref) == format('refs/heads/{0}',inputs.release_branch) }}
         run: cosign sign --yes ${{ inputs.imageTagName }}@${{ steps.build.outputs.digest }}
