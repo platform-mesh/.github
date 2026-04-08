@@ -1,3 +1,7 @@
+<p align="center">
+  <img alt="KubeCon Amsterdam Banner" src="banner.svg"/>
+</p>
+
 # Welcome to the Platform Mesh Project
 
 <img src="../assets/logo.svg" alt="Platform Mesh Logo" width="200" />

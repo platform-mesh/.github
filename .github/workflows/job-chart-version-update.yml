@@ -24,7 +24,7 @@ jobs:
     steps:
       - name: Generate a token
         id: generate-token
-        uses: actions/create-github-app-token@a8d616148505b5069dccd32f177bb87d7f39123b # v2
+        uses: actions/create-github-app-token@f8d387b68d61c58ab83c6c016672934102569859 # v3
         with:
          app-id: "1415820"
          private-key: ${{ secrets.PM_PUBLISHER_PRIVATE_KEY }}

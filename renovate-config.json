@@ -1,20 +1,49 @@
 {
   "$schema": "https://docs.renovatebot.com/renovate-schema.json",
-  "extends": [
-    "config:base",
-    "helpers:pinGitHubActionDigests"
-  ],
+  "extends": ["config:base", "helpers:pinGitHubActionDigests", "docker:pinDigests"],
   "npm": {},
   "automerge": true,
   "automergeType": "pr",
   "autoapprove": true,
+  // Supply chain protection: delay merging packages until they are at least 7 days old.
+  // This gives security researchers and automated tools time to detect malicious releases.
+  // Applies globally to all datasources (npm, Docker, Go, Maven, Helm, etc.).
+  "minimumReleaseAge": "7 days",
   "platformAutomerge": true,
   "postUpdateOptions": [
     "gomodUpdateImportPaths",
     "gomodTidy",
-    "helmUpdateSubChartArchives"
+    "helmUpdateSubChartArchives",
+    "npmInstallTwice"
   ],
   "packageRules": [
+    {
+      "description": "Use replace strategy for library dependencies to convert to ranges",
+      "matchDepTypes": ["dependencies"],
+      "matchManagers": ["npm"],
+      "matchFileNames": ["package.json"],
+      "matchJsonata": ["$.publishConfig"],
+      "rangeStrategy": "replace"
+    },
+    {
+      "description": "Pin application dependencies for reproducible production builds",
+      "matchDepTypes": ["dependencies"],
+      "matchManagers": ["npm"],
+      "matchJsonata": ["$.private = true and not($.publishConfig)"],
+      "rangeStrategy": "pin"
+    },
+    {
+      "description": "Widen peer dependency ranges to support multiple versions",
+      "matchDepTypes": ["peerDependencies"],
+      "matchManagers": ["npm"],
+      "rangeStrategy": "widen"
+    },
+    {
+      "description": "Pin dev dependencies for reproducible builds",
+      "matchDepTypes": ["devDependencies"],
+      "matchManagers": ["npm"],
+      "rangeStrategy": "pin"
+    },
     {
       "managers": ["helmv3"],
       "enabled": true,
@@ -22,22 +51,27 @@
     },
     {
       "groupName": "NestJS",
-      "matchPackagePrefixes": [
-        "@nestjs/",
-        "axios",
-        "nestjs",
-        "rxjs"
-      ],
+      "matchPackagePrefixes": ["@nestjs/", "axios", "nestjs", "rxjs"],
       "automerge": false,
       "platformAutomerge": false
     },
     {
       "groupName": "Luigi",
-      "matchPackagePrefixes": [
-        "@luigi-project/"
-      ],
+      "matchPackagePrefixes": ["@luigi-project/"],
       "automerge": false,
       "platformAutomerge": false
+    },
+    {
+      "groupName": "OpenMFP",
+      "automerge": true,
+      "platformAutomerge": true,
+      "matchPackageNames": ["@openmfp/**"]
+    },
+    {
+      "groupName": "Platform Mesh",
+      "automerge": true,
+      "platformAutomerge": true,
+      "matchPackageNames": ["@platform-mesh/**"]
     },
     {
       "groupName": "Fundamental NGX and Angular",
@@ -64,6 +98,12 @@
       "platformAutomerge": false
     },
     {
+      "description": "Trust our own shared actions repo — follow main branch without digest pinning",
+      "matchPackageNames": ["platform-mesh/.github"],
+      "matchManagers": ["github-actions"],
+      "pinDigests": false
+    },
+    {
       "groupName": "Github Actions",
       "matchPackagePrefixes": [
         "@actions/upload-artifact",
@@ -74,9 +114,13 @@
     },
     {
       "allowedVersions": "<1.4.0",
-      "matchPackageNames": [
-        "k8s.io/client-go"
-      ]
+      "matchPackageNames": ["k8s.io/client-go"]
+    },
+    {
+      "description": "No release delay for our own container images",
+      "matchDatasources": ["docker"],
+      "matchPackagePrefixes": ["ghcr.io/platform-mesh/"],
+      "minimumReleaseAge": "0 days"
     }
   ],
   "rebaseWhen": "auto"
