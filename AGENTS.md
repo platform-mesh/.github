@@ -52,3 +52,6 @@
 - Set timeouts on all jobs/steps; use concurrency groups
 - Parse JSON/YAML with jq/yq; use HEREDOC for multi-line strings
 - Validate inputs before use in version calculations
+
+## Human-facing guidelines
+- use CONTRIBUTING.md for human-facing contribution insights 
