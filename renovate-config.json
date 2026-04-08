@@ -115,6 +115,12 @@
     {
       "allowedVersions": "<1.4.0",
       "matchPackageNames": ["k8s.io/client-go"]
+    },
+    {
+      "description": "No release delay for our own container images",
+      "matchDatasources": ["docker"],
+      "matchPackagePrefixes": ["ghcr.io/platform-mesh/"],
+      "minimumReleaseAge": "0 days"
     }
   ],
   "rebaseWhen": "auto"
