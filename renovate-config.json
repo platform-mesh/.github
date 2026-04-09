@@ -98,8 +98,8 @@
       "platformAutomerge": false
     },
     {
-      "description": "Trust our own shared actions repo — follow main branch without digest pinning",
-      "matchPackageNames": ["platform-mesh/.github"],
+      "description": "Trust our own org workflows — follow branch refs without digest pinning",
+      "matchPackagePatterns": ["^platform-mesh/"],
       "matchManagers": ["github-actions"],
       "pinDigests": false
     },
