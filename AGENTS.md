@@ -28,7 +28,7 @@ Architectural decisions (ADRs) and design proposals (RFCs) are in the [architect
 
 ## Go
 
-- Follow the [Kubernetes coding conventions](https://github.com/kubernetes/community/blob/main/contributors/guide/coding-conventions.md)
+- Follow the [Kubernetes coding conventions](https://github.com/kubernetes/community/blob/main/contributors/guide/coding-conventions.md) as general guidance — they were written for the Kubernetes project, so not everything applies 1:1, but they provide a solid baseline
 - Use `golang-commons` for logging, context management, and config
 - Use `platform-mesh/subroutines` for operator lifecycle management
 - Use `ptr.To()` and `ptr.Deref()` from `k8s.io/utils/ptr` — no custom pointer helpers
