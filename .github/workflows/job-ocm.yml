@@ -25,6 +25,11 @@ on:
         required: false
         type: string
         default: ''
+      serviceComponentConstructorFile:
+        description: "Custom service component constructor file in the ocm repo (defaults to constructor/service-component.yaml)"
+        required: false
+        type: string
+        default: ''
 
 jobs:
   ocm:
@@ -182,9 +187,11 @@ jobs:
             -f chartName="${{ env.CHART_NAME }}" \
             -f chartVersion="${{ env.VERSION }}" \
             -f appVersion="${{ env.APP_VERSION }}" \
-            -f imageComponentName="$IMAGE_COMPONENT_NAME"
+            -f imageComponentName="$IMAGE_COMPONENT_NAME" \
+            ${SERVICE_COMPONENT_CONSTRUCTOR_FILE:+-f componentConstructorFile="$SERVICE_COMPONENT_CONSTRUCTOR_FILE"}
         env:
           GITHUB_TOKEN: ${{ steps.app-token.outputs.token }}
+          SERVICE_COMPONENT_CONSTRUCTOR_FILE: ${{ inputs.serviceComponentConstructorFile }}
 
       - name: Trigger PlatformMesh OCM build (monolithic mode)
         if: ${{ inputs.chartOnly != true }}
