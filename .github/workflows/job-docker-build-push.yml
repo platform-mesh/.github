@@ -55,7 +55,6 @@ jobs:
         run: cosign sign --yes ${{ inputs.imageTagName }}@${{ steps.build.outputs.digest }}
       - name: Attest build provenance
         if: ${{ (github.head_ref || github.ref) == format('refs/heads/{0}',inputs.release_branch) }}
-        continue-on-error: true # Requires 'attestations: write' in caller workflow permissions
         uses: actions/attest-build-provenance@a2bbfa25375fe432b6a289bc6b6cd05ecd0c4c32 # v4
         with:
           subject-name: ${{ inputs.imageTagName }}
