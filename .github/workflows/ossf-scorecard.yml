@@ -1,0 +1,14 @@
+name: OpenSSF Scorecard
+on:
+  push:
+    branches: [main]
+  schedule:
+    # Weekly on Mondays at 04:30 UTC.
+    - cron: '30 4 * * 1'
+  workflow_dispatch:
+
+permissions: read-all
+
+jobs:
+  scorecard:
+    uses: ./.github/workflows/job-ossf-scorecard.yml
