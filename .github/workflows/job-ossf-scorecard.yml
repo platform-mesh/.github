@@ -2,8 +2,6 @@ name: OpenSSF Scorecard analysis workflow
 on:
   workflow_call:
 
-permissions: read-all
-
 jobs:
   analysis:
     name: Scorecard analysis
@@ -13,6 +11,10 @@ jobs:
       security-events: write
       # Needed for GitHub OIDC token if publish_results is true
       id-token: write
+      # Needed to read repo contents during analysis
+      contents: read
+      # Needed by Scorecard to read workflow run metadata
+      actions: read
 
     steps:
       - name: "Checkout code"
