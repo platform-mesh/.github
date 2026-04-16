@@ -12,3 +12,8 @@ permissions: read-all
 jobs:
   scorecard:
     uses: ./.github/workflows/job-ossf-scorecard.yml
+    permissions:
+      # Needed for Code scanning upload
+      security-events: write
+      # Needed for GitHub OIDC token if publish_results is true
+      id-token: write
