@@ -1,6 +1,6 @@
 {
   "$schema": "https://docs.renovatebot.com/renovate-schema.json",
-  "extends": ["config:base", "helpers:pinGitHubActionDigests", "docker:pinDigests"],
+  "extends": ["config:recommended", "helpers:pinGitHubActionDigests", "docker:pinDigests"],
   "npm": {},
   "automerge": true,
   "automergeType": "pr",
@@ -10,6 +10,15 @@
   // Applies globally to all datasources (npm, Docker, Go, Maven, Helm, etc.).
   "minimumReleaseAge": "7 days",
   "platformAutomerge": true,
+  "osvVulnerabilityAlerts": true,
+  "vulnerabilityAlerts": {
+    "enabled": true,
+    "labels": ["security", "vulnerability"],
+    "assignees": ["team:platform-mesh/security"],
+    "reviewers": ["team:platform-mesh/security"],
+    "automerge": true,
+    "platformAutomerge": true
+  },
   "postUpdateOptions": [
     "gomodUpdateImportPaths",
     "gomodTidy",
