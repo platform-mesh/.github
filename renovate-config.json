@@ -123,5 +123,9 @@
       "minimumReleaseAge": "0 days"
     }
   ],
-  "rebaseWhen": "auto"
+  "rebaseWhen": "auto",
+  "lockFileMaintenance": {
+    "enabled": true,
+    "schedule": ["before 5am every day"]
+  }
 }
