@@ -30,7 +30,7 @@ jobs:
                 labels: ['BREAKING CHANGE']
               - type: 'documentation'
                 nouns: ['doc', 'docs', 'docu','document','documentation']
-                labels: ['documentation','fix']
+                labels: ['documentation']
               - type: 'ci'
                 nouns: ['build','rebuild','ci']
                 labels: ['ci']
@@ -39,7 +39,13 @@ jobs:
                 labels: ['ci','dependencies']
               - type: 'config'
                 nouns: ['config', 'conf', 'configuration', 'configure']
-                labels: ['config','fix']
+                labels: ['chore']
               - type: 'chore'
-                nouns: ['chore']
-                labels: ['chore','fix']
+                nouns: ['chore', 'test', 'refactor', 'style']
+                labels: ['chore']
+              - type: 'perf'
+                nouns: ['perf']
+                labels: ['enhancement']
+              - type: 'revert'
+                nouns: ['revert']
+                labels: ['fix']
