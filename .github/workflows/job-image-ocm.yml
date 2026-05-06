@@ -18,6 +18,11 @@ on:
         description: "Git commit SHA for provenance"
         required: true
         type: string
+      componentName:
+        description: "Full OCM component name (e.g., github.com/platform-mesh/images/my-component). Defaults to github.com/platform-mesh/images/<repoName>"
+        required: false
+        type: string
+        default: ""
       ocmRegistryUrl:
         description: "OCM registry URL"
         type: string
@@ -76,7 +81,7 @@ jobs:
         run: |
           cat <<'EOF' > component-constructor.yaml
           components:
-            - name: github.com/platform-mesh/images/{{ .REPO_NAME }}
+            - name: {{ .COMPONENT_NAME }}
               version: "{{ .APP_VERSION }}"
               provider:
                 name: Platform Mesh Team
@@ -112,10 +117,12 @@ jobs:
 
       - name: Create OCM ComponentArchive
         run: |
+          COMPONENT_NAME="${{ inputs.componentName || format('github.com/platform-mesh/images/{0}', inputs.repoName) }}"
           ocm_ctf=transport.ctf
           ./ocm add components -c --templater=go --file "$ocm_ctf" component-constructor.yaml -- \
             APP_VERSION=${{ inputs.appVersion }} \
             IMAGE_REFERENCE=${{ inputs.imageReference }} \
+            COMPONENT_NAME="${COMPONENT_NAME}" \
             REPO_NAME=${{ inputs.repoName }} \
             COMMIT=${{ inputs.commit }}
 
