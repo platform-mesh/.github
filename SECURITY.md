@@ -9,7 +9,7 @@ If you believe you have found a security vulnerability in any platform-mesh repo
 **Please do NOT**:
 
 - **Report potential security vulnerabilities through GitHub issues or other public channels,**
-- **Reach out to specific Security Response Team members**
+- **Contact Security Response Team members directly**
 
 Instead, please use one of the following channels:
 
@@ -35,18 +35,4 @@ We prefer all communications to be in English.
 
 ## Handling and Disclosing Security Issues
 
-The security issue reports and disclosure within the Platform Mesh organization are handled by the Security Response Team. The team members are listed in the [`platform-mesh/security` GitHub Team](https://github.com/orgs/platform-mesh/teams/security). Again, we ask that you do NOT reach out to these team members, but instead use the process described above.
-
-We follow the principle of [Coordinated Vulnerability Disclosure](https://en.wikipedia.org/wiki/Coordinated_vulnerability_disclosure). We ask that you:
-
-  - Allow us a reasonable time to investigate and address the issue before making any information public.
-  - Make a good faith effort to avoid privacy violations, data destruction, and disruption of services.
-  - Do not exploit the vulnerability beyond what is necessary to verify it.
-
-We commit to:
-
-  - Acknowledging receipt of your vulnerability report.
-  - Providing an estimated timeline for a fix.
-  - Notifying you when the vulnerability is resolved.
-
-Please check out the [Security document on the Platform Mesh website](https://platform-mesh.io/main/reference/security/) for more information on how we handle security issues, what to expect, and information for the end user community (such as how we handle security releases).
+For full details on how we handle and disclose security issues — including our coordinated disclosure process, what to expect after reporting, and information for the end user community — please refer to [the Security document on the Platform Mesh website](https://platform-mesh.io/main/reference/security/).
