@@ -107,10 +107,10 @@
       "platformAutomerge": false
     },
     {
-      "description": "Trust our own org workflows — follow branch refs without digest pinning",
-      "matchPackagePatterns": ["^platform-mesh/"],
+      "description": "No release delay for our own reusable workflows and org Actions",
       "matchManagers": ["github-actions"],
-      "pinDigests": false
+      "matchPackagePatterns": ["^platform-mesh/"],
+      "minimumReleaseAge": "0 days"
     },
     {
       "groupName": "Github Actions",
