@@ -132,7 +132,7 @@ jobs:
           OCM_SIGNING_CERT: ${{ secrets.OCM_SIGNING_CERT }}
 
       - name: Transfer to OCM registry
-        run: ./ocm transfer ctf --overwrite transport.ctf "${{ inputs.ocmRegistryUrl }}"
+        run: ./ocm transfer ctf transport.ctf "${{ inputs.ocmRegistryUrl }}"
 
       - name: Trigger PlatformMesh OCM build
         run: |

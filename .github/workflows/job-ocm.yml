@@ -167,7 +167,7 @@ jobs:
           OCM_SIGNING_CERT: ${{ secrets.OCM_SIGNING_CERT }}
 
       - name: Transfer to OCM REPO
-        run: ./ocm transfer ctf --overwrite .ocm/transport.ctf "${{ inputs.ocmRegistryUrl }}"
+        run: ./ocm transfer ctf .ocm/transport.ctf "${{ inputs.ocmRegistryUrl }}"
 
       - name: Trigger service component pipeline (chart-only mode)
         if: ${{ inputs.chartOnly == true }}
