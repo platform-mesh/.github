@@ -127,7 +127,7 @@ jobs:
             COMMIT=${{ inputs.commit }}
 
       - name: Download CA certificate
-        run: gh api repos/platform-mesh/ocm/contents/signature/ca.cert --jq '.content' | base64 -d > /tmp/ca.cert
+        run: gh api repos/platform-mesh/helm-charts/contents/.ocm/signature/ca.cert --jq '.content' | base64 -d > /tmp/ca.cert
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 

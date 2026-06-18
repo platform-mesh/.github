@@ -26,7 +26,7 @@ on:
         type: string
         default: ''
       serviceComponentConstructorFile:
-        description: "Custom service component constructor file in the ocm repo (defaults to constructor/service-component.yaml)"
+        description: "Custom service component constructor file in the helm-charts repo (defaults to .ocm/component-constructor-service-component.yaml)"
         required: false
         type: string
         default: ''
@@ -147,7 +147,7 @@ jobs:
               LOCAL_CHART_PATH=${{ inputs.chartPath }}
           fi
       - name: Download CA certificate
-        run: gh api repos/platform-mesh/ocm/contents/signature/ca.cert --jq '.content' | base64 -d > /tmp/ca.cert
+        run: gh api repos/platform-mesh/helm-charts/contents/.ocm/signature/ca.cert --jq '.content' | base64 -d > /tmp/ca.cert
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
@@ -182,7 +182,7 @@ jobs:
           SERVICE_COMPONENT_NAME="${{ inputs.componentName }}"
           SERVICE_COMPONENT_NAME="${SERVICE_COMPONENT_NAME/helm-charts\//}"
 
-          gh workflow run pipeline-service-component.yml --repo "platform-mesh/ocm" \
+          gh workflow run ocm-service-component.yaml --repo "platform-mesh/helm-charts" \
             -f componentName="$SERVICE_COMPONENT_NAME" \
             -f chartName="${{ env.CHART_NAME }}" \
             -f chartVersion="${{ env.VERSION }}" \
@@ -196,6 +196,6 @@ jobs:
       - name: Trigger PlatformMesh OCM build (monolithic mode)
         if: ${{ inputs.chartOnly != true }}
         run: |
-          gh workflow run ocm.yaml --repo "platform-mesh/ocm"
+          gh workflow run ocm-aggregator.yaml --repo "platform-mesh/helm-charts"
         env:
           GITHUB_TOKEN: ${{ steps.app-token.outputs.token }}
