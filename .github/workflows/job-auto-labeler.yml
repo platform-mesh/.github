@@ -5,9 +5,13 @@ on:
 jobs:
   auto-labeler:
     runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      pull-requests: write
+      issues: write
     steps:
       - name: Checkout
-        uses: actions/checkout@8e8c483db84b4bee98b60c0593521ed34d9990e8 # v6
+        uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6
       - name: Run auto-labeler
         id: auto-labeler
         uses: mauroalderete/action-assign-labels@671a4ca2da0f900464c58b8b5540a1e07133e915 # v1
@@ -26,7 +30,7 @@ jobs:
                 labels: ['BREAKING CHANGE']
               - type: 'documentation'
                 nouns: ['doc', 'docs', 'docu','document','documentation']
-                labels: ['documentation','fix']
+                labels: ['documentation']
               - type: 'ci'
                 nouns: ['build','rebuild','ci']
                 labels: ['ci']
@@ -35,7 +39,13 @@ jobs:
                 labels: ['ci','dependencies']
               - type: 'config'
                 nouns: ['config', 'conf', 'configuration', 'configure']
-                labels: ['config','fix']
+                labels: ['chore']
               - type: 'chore'
-                nouns: ['chore']
-                labels: ['chore','fix']
+                nouns: ['chore', 'test', 'refactor', 'style']
+                labels: ['chore']
+              - type: 'perf'
+                nouns: ['perf']
+                labels: ['enhancement']
+              - type: 'revert'
+                nouns: ['revert']
+                labels: ['fix']

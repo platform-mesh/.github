@@ -25,9 +25,9 @@ jobs:
   test:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@8e8c483db84b4bee98b60c0593521ed34d9990e8 # v6
+      - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6
       - name: Set up Go
-        uses: actions/setup-go@4dc6199c7b1a012772edbd06daecab0f50c9053c # v6
+        uses: actions/setup-go@4b73464bb391d4059bd26b0524d20df3927bd417 # v6
         with:
           go-version-file: 'go.mod'
           cache: true
@@ -38,7 +38,7 @@ jobs:
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
       - name: Install Task
-        uses: arduino/setup-task@v2
+        uses: arduino/setup-task@b91d5d2c96a56797b48ac1e0e89220bf64044611 # v2.0.0
         if: ${{ inputs.useTask }}
         with:
           repo-token: ${{ secrets.GITHUB_TOKEN }}
@@ -52,7 +52,13 @@ jobs:
         if: ${{ inputs.useMake == true }}
         run: make test
       - name: Install Code Coverage
-        run: go install github.com/vladopajic/go-test-coverage/v2@latest
+        run: |
+          GO_MINOR=$(go env GOVERSION | sed 's/go1\.\([0-9]*\).*/\1/')
+          if [ "$GO_MINOR" -lt 26 ]; then
+            go install github.com/vladopajic/go-test-coverage/v2@v2.17.1
+          else
+            go install github.com/vladopajic/go-test-coverage/v2@latest
+          fi
       - name: Check Test Coverage
         run: go-test-coverage --threshold-file ${{ inputs. coverageThresholdFile }} --threshold-package ${{ inputs. coverageThresholdPackage }} --threshold-total ${{ inputs. coverageThresholdTotal }} --profile cover.out
         if: ${{ inputs.useLocalCoverageConfig == false }}
