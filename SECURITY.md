@@ -6,7 +6,10 @@ If you believe you have found a security vulnerability in any platform-mesh repo
 
 ## Reporting Security Issues
 
-**Please do not report security vulnerabilities through public GitHub issues.**
+**Please do NOT**:
+
+- **Report potential security vulnerabilities through GitHub issues or other public channels,**
+- **Contact Security Response Team members directly**
 
 Instead, please use one of the following channels:
 
@@ -30,16 +33,6 @@ This information will help us triage your report more quickly.
 
 We prefer all communications to be in English.
 
-## Disclosure Policy
+## Handling and Disclosing Security Issues
 
-We follow the principle of [Coordinated Vulnerability Disclosure](https://en.wikipedia.org/wiki/Coordinated_vulnerability_disclosure). We ask that you:
-
-  - Allow us a reasonable time to investigate and address the issue before making any information public.
-  - Make a good faith effort to avoid privacy violations, data destruction, and disruption of services.
-  - Do not exploit the vulnerability beyond what is necessary to verify it.
-
-We commit to:
-
-  - Acknowledging receipt of your vulnerability report.
-  - Providing an estimated timeline for a fix.
-  - Notifying you when the vulnerability is resolved.
+For full details on how we handle and disclose security issues — including our coordinated disclosure process, what to expect after reporting, and information for the end user community — please refer to [the Security document on the Platform Mesh website](https://platform-mesh.io/main/reference/security/).

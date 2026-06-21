@@ -112,7 +112,7 @@ jobs:
             COMMIT=${{ github.sha }}
 
       - name: Download CA certificate
-        run: gh api repos/platform-mesh/ocm/contents/signature/ca.cert --jq '.content' | base64 -d > /tmp/ca.cert
+        run: gh api repos/platform-mesh/helm-charts/contents/.ocm/signature/ca.cert --jq '.content' | base64 -d > /tmp/ca.cert
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
@@ -132,10 +132,10 @@ jobs:
           OCM_SIGNING_CERT: ${{ secrets.OCM_SIGNING_CERT }}
 
       - name: Transfer to OCM registry
-        run: ./ocm transfer ctf --overwrite transport.ctf "${{ inputs.ocmRegistryUrl }}"
+        run: ./ocm transfer ctf transport.ctf "${{ inputs.ocmRegistryUrl }}"
 
       - name: Trigger PlatformMesh OCM build
         run: |
-          gh workflow run ocm.yaml --repo "platform-mesh/ocm"
+          gh workflow run ocm-aggregator.yaml --repo "platform-mesh/helm-charts"
         env:
           GITHUB_TOKEN: ${{ steps.app-token.outputs.token }}

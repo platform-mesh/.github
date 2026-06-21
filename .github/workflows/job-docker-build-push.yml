@@ -20,7 +20,7 @@ on:
 
 jobs:
   docker:
-    runs-on: ${{ (github.head_ref || github.ref) == format('refs/heads/{0}',inputs.release_branch) && 'ubuntu-latest-large' || 'ubuntu-latest' }}
+    runs-on: ubuntu-latest
     permissions:
       contents: write
       packages: write

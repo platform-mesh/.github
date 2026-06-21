@@ -1,0 +1,116 @@
+name: Send platform-mesh security report to Zulip
+on:
+  schedule:
+    - cron: '0 10 * * 1-5' # 10:00 UTC, Monday–Friday
+  workflow_dispatch:
+
+env:
+  ORG: ${{ github.repository_owner }}
+
+jobs:
+  report:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Generate GitHub App token
+        id: app-token
+        uses: actions/create-github-app-token@bcd2ba49218906704ab6c1aa796996da409d3eb1 # v3
+        with:
+          client-id: ${{ secrets.ZULIP_GHAS_APP_CLIENT_ID }}
+          private-key: ${{ secrets.ZULIP_GHAS_APP_PRIVATE_KEY }}
+          owner: ${{ env.ORG }}
+
+      - name: Aggregate alerts by repository
+        env:
+          GH_TOKEN: ${{ steps.app-token.outputs.token }}
+        run: |
+          gh api --paginate "/orgs/$ORG/dependabot/alerts?state=open&per_page=100" \
+            | jq '[.[] | {repo: .repository.name, sev: .security_advisory.severity, src: "deps"}]' \
+            > deps.json
+
+          gh api --paginate "/orgs/$ORG/code-scanning/alerts?state=open&per_page=100" \
+            | jq '[.[] | {repo: .repository.name, sev: .rule.security_severity_level, src: "code"}]' \
+            > code.json
+
+          gh api --paginate "/orgs/$ORG/secret-scanning/alerts?state=open&per_page=100" \
+            | jq '[.[] | {repo: .repository.name, sev: "high", src: "secrets"}]' \
+            > secrets.json
+
+          # Table 1: Vulnerable dependencies — top 10
+          jq 'group_by(.repo)
+              | map({
+                  repo: .[0].repo,
+                  critical: (map(select(.sev=="critical")) | length),
+                  high:     (map(select(.sev=="high"))     | length),
+                  medium:   (map(select(.sev=="medium"))   | length),
+                  low:      (map(select(.sev=="low"))      | length),
+                  total:    length
+                })
+              | sort_by(-.critical, -.high, -.medium, -.low)
+              | .[0:10]' deps.json > impact_deps.json
+
+          # Table 2: Code and secret scanning — top 5
+          jq -s 'add
+                 | group_by(.repo)
+                 | map({
+                     repo: .[0].repo,
+                     critical: (map(select(.sev=="critical")) | length),
+                     high:     (map(select(.sev=="high"))     | length),
+                     medium:   (map(select(.sev=="medium"))   | length),
+                     low:      (map(select(.sev=="low"))      | length),
+                     total:    length
+                   })
+                 | sort_by(-.critical, -.high, -.medium, -.low)
+                 | .[0:5]' code.json secrets.json > impact_code_secrets.json
+
+      - name: Post to Zulip
+        env:
+          ZULIP_SITE: ${{ secrets.ZULIP_SITE }}
+          ZULIP_EMAIL: ${{ secrets.ZULIP_EMAIL }}
+          ZULIP_API_KEY: ${{ secrets.ZULIP_API_KEY }}
+          ZULIP_STREAM: "neonephos-platform-mesh-security"
+          ZULIP_TOPIC: "Security Updates"
+        run: |
+          render_table() {
+            local count
+            count=$(jq 'length' "$1")
+            if [ "$count" -eq 0 ]; then
+              echo "_No open alerts._ 🎉"
+              return
+            fi
+            jq -r --arg org "$ORG" '
+              "| Repository | Total Alerts | Critical | High | Medium | Low |\n" +
+              "| --- | ---: | ---: | ---: | ---: | ---: |\n" +
+              (map("| [\(.repo)](https://github.com/\($org)/\(.repo)) | \(.total) | \(.critical) | \(.high) | \(.medium) | \(.low) |")
+               | join("\n"))
+            ' "$1"
+          }
+
+          deps_table=$(render_table impact_deps.json)
+          code_secrets_table=$(render_table impact_code_secrets.json)
+          today=$(date -u +%Y-%m-%d)
+
+          body=$(cat <<EOF
+          # Daily Security Report ($today)
+
+          ## Vulnerable Dependencies
+
+          Top 10 repositories by number of vulnerable dependencies:
+
+          $deps_table
+
+          ## Code and Secret Scanning
+
+          Top 5 repositories by number of code and secret scanning alerts:
+
+          $code_secrets_table
+
+          See [GitHub Security and Quality](https://github.com/orgs/$ORG/security/overview) for more details.
+          EOF
+          )
+
+          curl -sS -X POST "$ZULIP_SITE/api/v1/messages" \
+            -u "$ZULIP_EMAIL:$ZULIP_API_KEY" \
+            --data-urlencode "type=stream" \
+            --data-urlencode "to=$ZULIP_STREAM" \
+            --data-urlencode "topic=$ZULIP_TOPIC" \
+            --data-urlencode "content=$body"
