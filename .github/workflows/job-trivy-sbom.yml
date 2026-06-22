@@ -3,18 +3,18 @@ name: Scan SBOM for Latest Component Version
 on:
   workflow_call:
     inputs:
-      component:
+      componentName:
         description: 'OCM component name (defaults to github.com/{org}/images/{repo})'
         default: ''
         type: string
-      repo:
-        description: 'OCI registry repo (defaults to ghcr.io/{org})'
-        default: ''
+      componentVersion:
+        description: 'Component version to scan'
         type: string
-      severity:
+        required: true
+      trivySeverity:
         default: 'CRITICAL,HIGH'
         type: string
-      exitCode:
+      trivyExitCode:
         description: 'Trivy exit code on findings. Defaults to 0 for public repos (results go to the Security tab) and 1 for private repos (no upload, so fail the job instead).'
         default: ''
         type: string
@@ -28,9 +28,9 @@ permissions:
   security-events: write
 
 env:
-  COMPONENT: ${{ inputs.component || format('github.com/{0}/images/{1}', github.repository_owner, github.event.repository.name) }}
-  REPO: ${{ inputs.repo || format('ghcr.io/{0}', github.repository_owner) }}
   REGISTRY_TOKEN: ${{ secrets.registryToken || secrets.GITHUB_TOKEN }}
+  IMAGE_REPO: ${{ format('ghcr.io/{0}', github.repository_owner) }}
+  COMPONENT: ${{ inputs.componentName || format('github.com/{0}/images/{1}', github.repository_owner, github.event.repository.name) }}
 
 jobs:
   scan-sbom:
@@ -44,44 +44,36 @@ jobs:
 
       - name: Log in to registry
         run: |
-          REGISTRY_HOST="${REPO%%/*}"
+          REGISTRY_HOST="${IMAGE_REPO%%/*}"
           echo "${REGISTRY_TOKEN}" | \
-            oras login "$REGISTRY_HOST" -u "${{ github.actor }}" --password-stdin
+            oras login "${REGISTRY_HOST}" -u "${{ github.actor }}" --password-stdin
 
-      - name: Fetch SBOM for latest component version
+      - name: Fetch SBOM for component version
+        env:
+          COMPONENT_VERSION: ${{ inputs.componentVersion }}
         run: |
-          version=$(ocm get cv "$REPO//$COMPONENT" -o json \
-            | jq -r '.[].component.version' \
-            | sort -V -r \
-            | head -n 1)
-          if [ -z "$version" ]; then
-            echo "No component versions found for $REPO//$COMPONENT"
-            exit 1
-          fi
-          echo "Scanning version: ${version}"
+          DIGEST=$(ocm get cv "${IMAGE_REPO}//${COMPONENT}:${COMPONENT_VERSION}" -o json \
+            | jq -r '.items[].component.resources[] | select(.name == "sbom-cyclonedx") | .access.localReference')
 
-          DIGEST=$(ocm get cv "$REPO//$COMPONENT:${version}" -o yaml \
-            | yq '.[].component.resources[] | select(.name == "sbom-cyclonedx") | .access.localReference')
-
-          if [ -z "$DIGEST" ] || [ "$DIGEST" = "null" ]; then
-            echo "No SBOM resource found for ${version}"
+          if [ -z "${DIGEST}" ] || [ "${DIGEST}" = "null" ]; then
+            echo "No SBOM resource found for ${COMPONENT_VERSION}"
             exit 1
           fi
 
           oras blob fetch \
             --output "sbom.json" \
-            "$REPO/component-descriptors/$COMPONENT@$DIGEST"
+            "${IMAGE_REPO}/component-descriptors/${COMPONENT}@${DIGEST}"
 
       - name: Run Trivy vulnerability scanner
         uses: aquasecurity/trivy-action@ed142fd0673e97e23eac54620cfb913e5ce36c25 # v0.36.0
         with:
           scan-type: 'sbom'
           scan-ref: 'sbom.json'
-          severity: ${{ inputs.severity }}
+          severity: ${{ inputs.trivySeverity }}
           ignore-unfixed: true
           # Public repos report to the Security tab (don't block); private repos
           # can't upload, so fail the job to surface findings. Override via input.
-          exit-code: ${{ inputs.exitCode || (github.event.repository.private && '1' || '0') }}
+          exit-code: ${{ inputs.trivyExitCode || (github.event.repository.private && '1' || '0') }}
           format: 'sarif'
           output: 'trivy.sarif'
 
