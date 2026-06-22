@@ -74,8 +74,20 @@ jobs:
           # Public repos report to the Security tab (don't block); private repos
           # can't upload, so fail the job to surface findings. Override via input.
           exit-code: ${{ inputs.trivyExitCode || (github.event.repository.private && '1' || '0') }}
-          format: 'sarif'
-          output: 'trivy.sarif'
+          format: ${{ github.event.repository.private == false && 'sarif' || 'table' }}
+          output: ${{ github.event.repository.private == false && 'trivy.sarif' || '' }}
+
+      - name: Normalize SARIF artifact locations
+        # Trivy's SBOM scan leaves physicalLocation.artifactLocation.uri empty for
+        # some findings (it derives the location from the scanned file name, which
+        # isn't always populated). GitHub code scanning rejects the whole SARIF if
+        # any single result has an empty location, so backfill the empties with the
+        # same "library/<file>" label Trivy already emits for the findings it does fill.
+        if: hashFiles('trivy.sarif') != '' && github.event.repository.private == false
+        run: |
+          jq '(.runs[].results[]?.locations[]?.physicalLocation.artifactLocation.uri) |= (if (. // "") == "" then "library/sbom.json" else . end)' \
+            trivy.sarif > trivy.sarif.tmp
+          mv trivy.sarif.tmp trivy.sarif
 
       - name: Upload Trivy scan results to GitHub Security tab
         # Code scanning upload only works on public repos (or private repos with
