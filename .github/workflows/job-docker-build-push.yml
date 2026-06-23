@@ -25,6 +25,7 @@ jobs:
       contents: write
       packages: write
       id-token: write
+      attestations: write
     steps:
       - name: Login to GitHub Container Registry
         uses: docker/login-action@b45d80f862d83dbcd57f89517bcf500b2ab88fb2 # v4
@@ -52,6 +53,13 @@ jobs:
       - name: Sign container image
         if: ${{ (github.head_ref || github.ref) == format('refs/heads/{0}',inputs.release_branch) }}
         run: cosign sign --yes ${{ inputs.imageTagName }}@${{ steps.build.outputs.digest }}
+      - name: Attest build provenance
+        if: ${{ (github.head_ref || github.ref) == format('refs/heads/{0}',inputs.release_branch) }}
+        uses: actions/attest-build-provenance@a2bbfa25375fe432b6a289bc6b6cd05ecd0c4c32 # v4
+        with:
+          subject-name: ${{ inputs.imageTagName }}
+          subject-digest: ${{ steps.build.outputs.digest }}
+          push-to-registry: true
       - name: Create Release
         if: ${{ (github.head_ref || github.ref) == format('refs/heads/{0}',inputs.release_branch) }}
         uses: ncipollo/release-action@339a81892b84b4eeb0f6e744e4574d79d0d9b8dd # v1.21.0
