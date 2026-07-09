@@ -1,0 +1,48 @@
+name: Zizmor GitHub Actions analysis workflow
+on:
+  workflow_call:
+    inputs:
+      inputs:
+        description: "Whitespace-separated list of paths for zizmor to audit"
+        required: false
+        type: string
+        default: "."
+      persona:
+        description: "Auditing persona: 'regular', 'pedantic', or 'auditor'"
+        required: false
+        type: string
+        default: "regular"
+      min-severity:
+        description: "Minimum severity to report: 'unknown', 'informational', 'low', 'medium', or 'high'"
+        required: false
+        type: string
+        default: ""
+      min-confidence:
+        description: "Minimum confidence to report: 'unknown', 'low', 'medium', or 'high'"
+        required: false
+        type: string
+        default: ""
+
+jobs:
+  zizmor:
+    name: Zizmor analysis
+    runs-on: ubuntu-latest
+    permissions:
+      security-events: write # Needed for Code scanning (SARIF) upload
+      contents: read # Needed to read repo contents during analysis
+      actions: read # Needed by zizmor online audits / SARIF upload to read workflow run metadata
+
+    steps:
+      - name: "Checkout code"
+        uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0 # v7
+        with:
+          persist-credentials: false
+
+      - name: "Run zizmor analysis"
+        uses: zizmorcore/zizmor-action@192e21d79ab29983730a13d1382995c2307fbcaa # v0.5.7
+        with:
+          inputs: ${{ inputs.inputs }}
+          persona: ${{ inputs.persona }}
+          min-severity: ${{ inputs.min-severity }}
+          min-confidence: ${{ inputs.min-confidence }}
+          advanced-security: true
