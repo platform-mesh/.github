@@ -4,13 +4,18 @@
     "config:recommended",
     "helpers:pinGitHubActionDigests",
     "docker:pinDigests",
-    ":gitSignOff"
+    ":gitSignOff",
+    ":noUnscheduledUpdates"
   ],
   "configMigration": true,
   "npm": {},
   "automerge": true,
   "automergeType": "pr",
   "autoApprove": true,
+  "timezone": "Europe/Berlin",
+  "schedule": [
+    "* * * * 0"
+  ],
   "minimumReleaseAge": "7 days",
   "platformAutomerge": true,
   "osvVulnerabilityAlerts": true,
@@ -36,6 +41,19 @@
     "npmInstallTwice"
   ],
   "packageRules": [
+    {
+      "description": "Batch all non-major updates into a single weekly PR",
+      "groupName": "all non-major dependencies",
+      "groupSlug": "all-minor-patch",
+      "matchPackageNames": [
+        "*"
+      ],
+      "matchUpdateTypes": [
+        "minor",
+        "patch",
+        "digest"
+      ]
+    },
     {
       "description": "Use replace strategy for library dependencies to convert to ranges",
       "matchDepTypes": [
@@ -190,7 +208,7 @@
   "lockFileMaintenance": {
     "enabled": true,
     "schedule": [
-      "before 5am"
+      "* * * * 0"
     ]
   }
 }
