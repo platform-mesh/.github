@@ -6,6 +6,7 @@
     "docker:pinDigests",
     ":gitSignOff"
   ],
+  "configMigration": true,
   "npm": {},
   "automerge": true,
   "automergeType": "pr",
