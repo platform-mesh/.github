@@ -1,21 +1,30 @@
 {
   "$schema": "https://docs.renovatebot.com/renovate-schema.json",
-  "extends": ["config:recommended", "helpers:pinGitHubActionDigests", "docker:pinDigests", ":gitSignOff"],
+  "extends": [
+    "config:recommended",
+    "helpers:pinGitHubActionDigests",
+    "docker:pinDigests",
+    ":gitSignOff"
+  ],
   "npm": {},
   "automerge": true,
   "automergeType": "pr",
   "autoapprove": true,
-  // Supply chain protection: delay merging packages until they are at least 7 days old.
-  // This gives security researchers and automated tools time to detect malicious releases.
-  // Applies globally to all datasources (npm, Docker, Go, Maven, Helm, etc.).
   "minimumReleaseAge": "7 days",
   "platformAutomerge": true,
   "osvVulnerabilityAlerts": true,
   "vulnerabilityAlerts": {
     "enabled": true,
-    "labels": ["security", "vulnerability"],
-    "assignees": ["team:platform-mesh/security"],
-    "reviewers": ["team:platform-mesh/security"],
+    "labels": [
+      "security",
+      "vulnerability"
+    ],
+    "assignees": [
+      "team:platform-mesh/security"
+    ],
+    "reviewers": [
+      "team:platform-mesh/security"
+    ],
     "automerge": true,
     "platformAutomerge": true
   },
@@ -28,113 +37,159 @@
   "packageRules": [
     {
       "description": "Use replace strategy for library dependencies to convert to ranges",
-      "matchDepTypes": ["dependencies"],
-      "matchManagers": ["npm"],
-      "matchFileNames": ["package.json"],
-      "matchJsonata": ["$.publishConfig"],
+      "matchDepTypes": [
+        "dependencies"
+      ],
+      "matchManagers": [
+        "npm"
+      ],
+      "matchFileNames": [
+        "package.json"
+      ],
+      "matchJsonata": [
+        "$.publishConfig"
+      ],
       "rangeStrategy": "replace"
     },
     {
       "description": "Pin application dependencies for reproducible production builds",
-      "matchDepTypes": ["dependencies"],
-      "matchManagers": ["npm"],
-      "matchJsonata": ["$.private = true and not($.publishConfig)"],
+      "matchDepTypes": [
+        "dependencies"
+      ],
+      "matchManagers": [
+        "npm"
+      ],
+      "matchJsonata": [
+        "$.private = true and not($.publishConfig)"
+      ],
       "rangeStrategy": "pin"
     },
     {
       "description": "Widen peer dependency ranges to support multiple versions",
-      "matchDepTypes": ["peerDependencies"],
-      "matchManagers": ["npm"],
+      "matchDepTypes": [
+        "peerDependencies"
+      ],
+      "matchManagers": [
+        "npm"
+      ],
       "rangeStrategy": "widen"
     },
     {
       "description": "Pin dev dependencies for reproducible builds",
-      "matchDepTypes": ["devDependencies"],
-      "matchManagers": ["npm"],
+      "matchDepTypes": [
+        "devDependencies"
+      ],
+      "matchManagers": [
+        "npm"
+      ],
       "rangeStrategy": "pin"
     },
     {
-      "managers": ["helmv3"],
+      "matchManagers": [
+        "helmv3"
+      ],
       "enabled": true,
       "bumpVersion": "patch"
     },
     {
       "groupName": "NestJS",
-      "matchPackagePrefixes": ["@nestjs/", "axios", "nestjs", "rxjs"],
       "automerge": false,
-      "platformAutomerge": false
+      "platformAutomerge": false,
+      "matchPackageNames": [
+        "@nestjs/{/,}**",
+        "axios{/,}**",
+        "nestjs{/,}**",
+        "rxjs{/,}**"
+      ]
     },
     {
       "groupName": "Luigi",
-      "matchPackagePrefixes": ["@luigi-project/"],
       "automerge": false,
-      "platformAutomerge": false
+      "platformAutomerge": false,
+      "matchPackageNames": [
+        "@luigi-project/{/,}**"
+      ]
     },
     {
       "groupName": "OpenMFP",
       "automerge": true,
       "platformAutomerge": true,
-      "matchPackageNames": ["@openmfp/**"]
+      "matchPackageNames": [
+        "@openmfp/**"
+      ]
     },
     {
       "groupName": "Platform Mesh",
       "automerge": true,
       "platformAutomerge": true,
-      "matchPackageNames": ["@platform-mesh/**"]
+      "matchPackageNames": [
+        "@platform-mesh/**"
+      ]
     },
     {
       "groupName": "Fundamental NGX and Angular",
-      "matchPackagePrefixes": [
-        "@angular-eslint/",
-        "@angular/",
-        "@angular-devkit/",
-        "@angular-builders/",
-        "rxjs",
-        "typescript",
-        "@fundamental-ngx/",
-        "@sap-theming/theming-base-content",
-        "@ui5/webcomponents-icons",
-        "fundamental-styles",
-        "apollo-angular",
-        "ng-",
-        "ngx",
-        "jest",
-        "ts-jest",
-        "@types/jest",
-        "zone.js"
-      ],
       "automerge": false,
-      "platformAutomerge": false
+      "platformAutomerge": false,
+      "matchPackageNames": [
+        "@angular-eslint/{/,}**",
+        "@angular/{/,}**",
+        "@angular-devkit/{/,}**",
+        "@angular-builders/{/,}**",
+        "rxjs{/,}**",
+        "typescript{/,}**",
+        "@fundamental-ngx/{/,}**",
+        "@sap-theming/theming-base-content{/,}**",
+        "@ui5/webcomponents-icons{/,}**",
+        "fundamental-styles{/,}**",
+        "apollo-angular{/,}**",
+        "ng-{/,}**",
+        "ngx{/,}**",
+        "jest{/,}**",
+        "ts-jest{/,}**",
+        "@types/jest{/,}**",
+        "zone.js{/,}**"
+      ]
     },
     {
       "description": "No release delay for our own reusable workflows and org Actions",
-      "matchManagers": ["github-actions"],
-      "matchPackagePatterns": ["^platform-mesh/"],
-      "minimumReleaseAge": "0 days"
+      "matchManagers": [
+        "github-actions"
+      ],
+      "minimumReleaseAge": "0 days",
+      "matchPackageNames": [
+        "/^platform-mesh//"
+      ]
     },
     {
       "groupName": "Github Actions",
-      "matchPackagePrefixes": [
-        "@actions/upload-artifact",
-        "@actions/download-artifact"
-      ],
-      "platformAutomerge": false,
-      "automerge": false
+      "automerge": false,
+      "matchPackageNames": [
+        "@actions/upload-artifact{/,}**",
+        "@actions/download-artifact{/,}**"
+      ]
     },
     {
       "allowedVersions": "<1.4.0",
-      "matchPackageNames": ["k8s.io/client-go"]
+      "matchPackageNames": [
+        "k8s.io/client-go"
+      ]
     },
     {
       "description": "No release delay for our own container images",
-      "matchDatasources": ["docker"],
-      "matchPackagePrefixes": ["ghcr.io/platform-mesh/"],
-      "minimumReleaseAge": "0 days"
+      "matchDatasources": [
+        "docker"
+      ],
+      "minimumReleaseAge": "0 days",
+      "matchPackageNames": [
+        "ghcr.io/platform-mesh/{/,}**"
+      ]
     }
   ],
   "rebaseWhen": "auto",
   "lockFileMaintenance": {
     "enabled": true,
-    "schedule": ["before 5am every day"]
+    "schedule": [
+      "before 5am"
+    ]
   }
 }
