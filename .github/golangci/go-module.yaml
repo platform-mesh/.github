@@ -1,0 +1,26 @@
+# GolangCI-Lint configuration for GO_MODULES repositories
+# This file is automatically synced from the .github repository
+# Do not edit directly - changes will be overwritten
+#
+# Source: https://github.com/platform-mesh/.github/blob/main/.github/golangci/go-module.yaml
+version: "2"
+formatters:
+  enable:
+    - gci
+    - gofmt
+  settings:
+    gci:
+      sections:
+        - standard
+        - default
+        - prefix(k8s.io)
+        - prefix(github.com/kcp-dev)
+        - blank
+        - dot
+      custom-order: true
+  exclusions:
+    generated: disable
+    paths:
+      - third_party$
+      - builtin$
+      - examples$
