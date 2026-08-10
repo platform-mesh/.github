@@ -27,6 +27,14 @@
   ],
   "packageRules": [
     {
+      "description": "Skip automatic updates for kcp's kube fork.",
+      "matchManagers": ["gomod"],
+      "enabled": false,
+      "matchPackageNames": [
+        "github.com/kcp-dev/kubernetes{/,}**"
+      ]
+    },
+    {
       "description": "Use replace strategy for library dependencies to convert to ranges",
       "matchDepTypes": ["dependencies"],
       "matchManagers": ["npm"],
