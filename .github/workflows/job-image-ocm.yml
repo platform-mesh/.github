@@ -27,6 +27,28 @@ on:
         description: "OCM registry URL"
         type: string
         default: ghcr.io/platform-mesh
+      extraResources:
+        description: |
+          Additional OCM resources, as a YAML list appended to the component's
+          `resources`. Indentation is normalised, so the list can be written at
+          column 0.
+
+          Go-templated with the same variables as the built-in resources:
+          .COMPONENT_NAME, .APP_VERSION, .IMAGE_REFERENCE, .REPO_NAME, .COMMIT.
+
+          A resource with an `input:` reads a file from the job's workspace, so
+          anything but an `access:` reference needs extraResourcesArtifact too.
+        required: false
+        type: string
+        default: ""
+      extraResourcesArtifact:
+        description: |
+          Name of a workflow artifact holding the files `extraResources` refers
+          to by path. Downloaded into the workspace before the component is
+          built, alongside the SBOMs.
+        required: false
+        type: string
+        default: ""
 
 jobs:
   image-ocm:
@@ -39,6 +61,12 @@ jobs:
         uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c # v8
         with:
           name: sbom
+
+      - name: Download extra resource files
+        if: inputs.extraResourcesArtifact != ''
+        uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c # v8
+        with:
+          name: ${{ inputs.extraResourcesArtifact }}
 
       - name: Setup OCM CLI
         run: |
@@ -85,6 +113,14 @@ jobs:
               version: "{{ .APP_VERSION }}"
               provider:
                 name: Platform Mesh Team
+              sources:
+                - name: source
+                  type: git
+                  version: "{{ .APP_VERSION }}"
+                  access:
+                    commit: "{{ .COMMIT }}"
+                    repoUrl: https://github.com/platform-mesh/{{ .REPO_NAME }}
+                    type: gitHub
               resources:
                 - name: image
                   type: ociImage
@@ -105,15 +141,29 @@ jobs:
                     type: file
                     path: sbom-spdx.json
                     mediaType: application/spdx+json
-              sources:
-                - name: source
-                  type: git
-                  version: "{{ .APP_VERSION }}"
-                  access:
-                    commit: "{{ .COMMIT }}"
-                    repoUrl: https://github.com/platform-mesh/{{ .REPO_NAME }}
-                    type: gitHub
           EOF
+
+      - name: Append extra resources
+        if: inputs.extraResources != ''
+        # Read from the environment, not interpolated into the script: the input
+        # is caller-controlled multi-line YAML, and expanding it inline would
+        # both break the quoting and make the step an injection point.
+        env:
+          EXTRA_RESOURCES: ${{ inputs.extraResources }}
+        run: |
+          python3 - >> component-constructor.yaml <<'PY'
+          import os, sys, textwrap
+
+          body = textwrap.dedent(os.environ["EXTRA_RESOURCES"]).strip("\n")
+          if not body:
+              sys.exit(0)
+          if not body.lstrip().startswith("-"):
+              sys.exit("extraResources must be a YAML list of resources")
+          # 6 spaces: the indentation of the items under `resources:` above.
+          sys.stdout.write(textwrap.indent(body, " " * 6) + "\n")
+          PY
+          echo "--- component-constructor.yaml"
+          cat component-constructor.yaml
 
       - name: Create OCM ComponentArchive
         run: |
