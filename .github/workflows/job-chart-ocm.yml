@@ -56,17 +56,11 @@ jobs:
 
       - name: Setup OCM CLI
         run: |
-          REPO=${repo:=open-component-model/ocm}
-          if [ -z "$version" -o "$version" == latest ]; then
-            version="$(basename "$(curl -Ls -o /dev/null -w %{url_effective} https://github.com/$REPO/releases/latest)")"
-            echo "Selecting latest version: $version"
-          fi
-          VERSION=${version#v}
-          ARCHIVE_FILE="ocm-${VERSION}-linux-amd64.tar.gz"
-          URL="https://github.com/$REPO/releases/download/v${VERSION}/$ARCHIVE_FILE"
+          REPO="open-component-model/open-component-model"
+          # renovate: datasource=github-releases depName=open-component-model/open-component-model
+          version="v0.13.0"
           echo "Installing ocm-cli version $version from $REPO"
-          curl -LsS -o ocm-cli.tgz "$URL"
-          tar --overwrite -xvzf ocm-cli.tgz >/dev/null
+          curl -LsS -o ocm "https://github.com/$REPO/releases/download/${version}/ocm-linux-amd64"
           chmod a+x ocm
 
       - name: Prepare template variables
@@ -93,7 +87,7 @@ jobs:
                     type: OCIRegistry
                     scheme: https
                     hostname: ${OCM_HOSTNAME}
-                    pathprefix: ${OCM_PATHPREFIX}
+                    path: ${OCM_PATHPREFIX}
                   credentials:
                     - type: Credentials
                       properties:
@@ -103,13 +97,14 @@ jobs:
 
       - name: Create OCM ComponentArchive
         run: |
-          ocm_ctf=transport.ctf
-          ./ocm add components -c --templater=go --file "$ocm_ctf" ${{ inputs.componentConstructorFile }} -- \
-            VERSION=${{ env.VERSION }} \
-            COMPONENT_NAME=${{ inputs.componentName }} \
-            CHART_OCI_PATH=${{ env.CHART_OCI_PATH }} \
-            CHART_REPO=${{ env.CHART_REPO }} \
-            COMMIT=${{ github.sha }}
+          ocm_ctf=ctf::transport.ctf
+          ./ocm add component-versions --repository "$ocm_ctf" --constructor ${{ inputs.componentConstructorFile }}
+        env:
+          VERSION: ${{ env.VERSION }}
+          COMPONENT_NAME: ${{ inputs.componentName }}
+          CHART_OCI_PATH: ${{ env.CHART_OCI_PATH }}
+          CHART_REPO: ${{ env.CHART_REPO }}
+          COMMIT: ${{ github.sha }}
 
       - name: Download CA certificate
         run: gh api repos/platform-mesh/helm-charts/contents/.ocm/signature/ca.cert --jq '.content' | base64 -d > /tmp/ca.cert
@@ -118,21 +113,30 @@ jobs:
 
       - name: Sign OCM component
         run: |
-          printf '%s' "$OCM_SIGNING_PRIVATE_KEY" > /tmp/ocm-signing.priv
-          printf '%s' "$OCM_SIGNING_CERT" > /tmp/ocm-signing.cert
-          ./ocm sign componentversion \
+          cat >> $HOME/.ocmconfig << EOF
+            - type: credentials.config.ocm.software
+              consumers:
+              - identity:
+                  type: RSA/v1alpha1
+                  algorithm: RSASSA-PSS
+                  signature: helm-charts.platform-mesh
+                credentials:
+                - type: Credentials/v1
+                  properties:
+                    private_key_pem: |
+          $(printf '%s' "$OCM_SIGNING_PRIVATE_KEY" | sed 's/^/            /')
+                    public_key_pem: |
+          $(printf '%s' "$OCM_SIGNING_CERT" | sed 's/^/            /')
+          EOF
+          ./ocm sign component-version \
             --signature helm-charts.platform-mesh \
-            --private-key /tmp/ocm-signing.priv \
-            --public-key /tmp/ocm-signing.cert \
-            --ca-cert /tmp/ca.cert \
-            transport.ctf
-          rm -f /tmp/ocm-signing.priv /tmp/ocm-signing.cert /tmp/ca.cert
+            "ctf::transport.ctf//${{ inputs.componentName }}:${{ env.VERSION }}"
         env:
           OCM_SIGNING_PRIVATE_KEY: ${{ secrets.OCM_SIGNING_PRIVATE_KEY }}
           OCM_SIGNING_CERT: ${{ secrets.OCM_SIGNING_CERT }}
 
       - name: Transfer to OCM registry
-        run: ./ocm transfer ctf transport.ctf "${{ inputs.ocmRegistryUrl }}"
+        run: ./ocm transfer component-version "ctf::transport.ctf//${{ inputs.componentName }}:${{ env.VERSION }}" "${{ inputs.ocmRegistryUrl }}"
 
       - name: Trigger PlatformMesh OCM build
         run: |
