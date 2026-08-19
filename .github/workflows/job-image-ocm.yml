@@ -103,26 +103,26 @@ jobs:
         run: |
           cat <<'EOF' > component-constructor.yaml
           components:
-            - name: {{ .COMPONENT_NAME }}
-              version: "{{ .APP_VERSION }}"
+            - name: "${COMPONENT_NAME}"
+              version: "${APP_VERSION}"
               provider:
                 name: Platform Mesh Team
               sources:
                 - name: source
                   type: git
-                  version: "{{ .APP_VERSION }}"
+                  version: "${APP_VERSION}"
                   access:
-                    commit: "{{ .COMMIT }}"
-                    repoUrl: https://github.com/platform-mesh/{{ .REPO_NAME }}
+                    commit: "${COMMIT}"
+                    repoUrl: "https://github.com/platform-mesh/${REPO_NAME}"
                     type: gitHub
               resources:
                 - name: image
                   type: ociImage
                   relation: external
-                  version: "{{ .APP_VERSION }}"
+                  version: "${APP_VERSION}"
                   access:
                     type: ociArtifact
-                    imageReference: "{{ .IMAGE_REFERENCE }}"
+                    imageReference: "${IMAGE_REFERENCE}"
                 - name: sbom-cyclonedx
                   type: sbom
                   input:
