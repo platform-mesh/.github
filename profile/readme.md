@@ -6,7 +6,7 @@
 
 ## :globe_with_meridians: ApeiroRA?
 
-ApeiroRA is a reference blueprint for an open, flexible, secure, and compliant next-generation cloud-edge continuum and therefore a key contribution to IPCEI-CIS. At a high level, the projects of ApeiroRA allow users to provider-agnostically fetch, request and consume services, and for service providers to describe, offer and provision their services.
+ApeiroRA is a reference blueprint for an open, flexible, secure, and compliant next-generation cloud-edge continuum, and is therefore a key contribution to IPCEI-CIS. At a high level, the projects within ApeiroRA allow users to fetch, request, and consume services in a provider-agnostic manner, while enabling service providers to describe, offer, and provision their services.
 
 Learn more about ApeiroRA by checking out the official website at [https://apeirora.eu/](https://apeirora.eu/).
 
