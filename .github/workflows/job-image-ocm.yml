@@ -69,13 +69,7 @@ jobs:
           name: ${{ inputs.extraResourcesArtifact }}
 
       - name: Setup OCM CLI
-        run: |
-          REPO="open-component-model/open-component-model"
-          # renovate: datasource=github-releases depName=open-component-model/open-component-model
-          version="v0.13.0"
-          echo "Installing ocm-cli version $version from $REPO"
-          curl -LsS -o ocm "https://github.com/$REPO/releases/download/${version}/ocm-linux-amd64"
-          chmod a+x ocm
+        uses: platform-mesh/.github/.github/actions/setup-ocm@bb344bddf54b4a559ac8dada1d6a275a1707b337 # main
 
       - name: Write OCM credentials file
         run: |
@@ -163,7 +157,7 @@ jobs:
         run: |
           COMPONENT_NAME="${{ inputs.componentName || format('github.com/platform-mesh/images/{0}', inputs.repoName) }}"
           ocm_ctf=ctf::transport.ctf
-          ./ocm add component-versions --repository "$ocm_ctf" --constructor component-constructor.yaml
+          ocm add component-versions --repository "$ocm_ctf" --constructor component-constructor.yaml
         env:
           APP_VERSION: ${{ inputs.appVersion }}
           IMAGE_REFERENCE: ${{ inputs.imageReference }}
@@ -194,7 +188,7 @@ jobs:
                     public_key_pem: |
           $(printf '%s' "$OCM_SIGNING_CERT" | sed 's/^/            /')
           EOF
-          ./ocm sign component-version \
+          ocm sign component-version \
             --signature ${{ inputs.repoName }}.platform-mesh \
             "ctf::transport.ctf//${COMPONENT_NAME}:${{ inputs.appVersion }}"
         env:
@@ -204,4 +198,4 @@ jobs:
       - name: Transfer to OCM registry
         run: |
           COMPONENT_NAME="${{ inputs.componentName || format('github.com/platform-mesh/images/{0}', inputs.repoName) }}"
-          ./ocm transfer component-version "ctf::transport.ctf//${COMPONENT_NAME}:${{ inputs.appVersion }}" "${{ inputs.ocmRegistryUrl }}"
+          ocm transfer component-version "ctf::transport.ctf//${COMPONENT_NAME}:${{ inputs.appVersion }}" "${{ inputs.ocmRegistryUrl }}"
