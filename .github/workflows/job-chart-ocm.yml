@@ -55,13 +55,7 @@ jobs:
         uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
 
       - name: Setup OCM CLI
-        run: |
-          REPO="open-component-model/open-component-model"
-          # renovate: datasource=github-releases depName=open-component-model/open-component-model
-          version="v0.13.0"
-          echo "Installing ocm-cli version $version from $REPO"
-          curl -LsS -o ocm "https://github.com/$REPO/releases/download/${version}/ocm-linux-amd64"
-          chmod a+x ocm
+        uses: platform-mesh/.github/.github/actions/setup-ocm@bb344bddf54b4a559ac8dada1d6a275a1707b337 # main
 
       - name: Prepare template variables
         run: |
@@ -98,7 +92,7 @@ jobs:
       - name: Create OCM ComponentArchive
         run: |
           ocm_ctf=ctf::transport.ctf
-          ./ocm add component-versions --repository "$ocm_ctf" --constructor ${{ inputs.componentConstructorFile }}
+          ocm add component-versions --repository "$ocm_ctf" --constructor ${{ inputs.componentConstructorFile }}
         env:
           VERSION: ${{ env.VERSION }}
           COMPONENT_NAME: ${{ inputs.componentName }}
@@ -128,7 +122,7 @@ jobs:
                     public_key_pem: |
           $(printf '%s' "$OCM_SIGNING_CERT" | sed 's/^/            /')
           EOF
-          ./ocm sign component-version \
+          ocm sign component-version \
             --signature helm-charts.platform-mesh \
             "ctf::transport.ctf//${{ inputs.componentName }}:${{ env.VERSION }}"
         env:
@@ -136,7 +130,7 @@ jobs:
           OCM_SIGNING_CERT: ${{ secrets.OCM_SIGNING_CERT }}
 
       - name: Transfer to OCM registry
-        run: ./ocm transfer component-version "ctf::transport.ctf//${{ inputs.componentName }}:${{ env.VERSION }}" "${{ inputs.ocmRegistryUrl }}"
+        run: ocm transfer component-version "ctf::transport.ctf//${{ inputs.componentName }}:${{ env.VERSION }}" "${{ inputs.ocmRegistryUrl }}"
 
       - name: Trigger PlatformMesh OCM build
         run: |
