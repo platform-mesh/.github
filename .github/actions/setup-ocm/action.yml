@@ -1,0 +1,28 @@
+name: Setup OCM CLI
+description: Install the OCM CLI (open-component-model/open-component-model) and add it to PATH.
+inputs:
+  version:
+    description: OCM CLI release tag to install. Defaults to the org-wide pinned version.
+    required: false
+    # renovate: datasource=github-releases depName=open-component-model/open-component-model
+    default: "v0.19.1"
+runs:
+  using: composite
+  steps:
+    - name: Install OCM CLI
+      shell: bash
+      env:
+        OCM_VERSION: ${{ inputs.version }}
+      run: |
+        set -euo pipefail
+        if [[ "$RUNNER_OS" != "Linux" || "$RUNNER_ARCH" != "X64" ]]; then
+          echo "::error::setup-ocm only supports Linux X64 runners (got $RUNNER_OS/$RUNNER_ARCH)"
+          exit 1
+        fi
+        bin_dir="$RUNNER_TEMP/ocm-cli"
+        mkdir -p "$bin_dir"
+        echo "Installing ocm-cli version $OCM_VERSION"
+        curl -fLsS -o "$bin_dir/ocm" "https://github.com/open-component-model/open-component-model/releases/download/${OCM_VERSION}/ocm-linux-amd64"
+        chmod a+x "$bin_dir/ocm"
+        echo "$bin_dir" >> "$GITHUB_PATH"
+        "$bin_dir/ocm" version

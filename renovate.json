@@ -2,5 +2,17 @@
   "$schema": "https://docs.renovatebot.com/renovate-schema.json",
   "extends": [
     "local>platform-mesh/.github:renovate-config"
+  ],
+  "customManagers": [
+    {
+      "customType": "regex",
+      "description": "OCM CLI version in the setup-ocm composite action",
+      "managerFilePatterns": [
+        "/(^|/)\\.github/actions/setup-ocm/action\\.yml$/"
+      ],
+      "matchStrings": [
+        "# renovate: datasource=(?<datasource>\\S+) depName=(?<depName>\\S+)\\n\\s*default:\\s*\"(?<currentValue>[^\"]+)\""
+      ]
+    }
   ]
 }
