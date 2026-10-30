@@ -15,7 +15,7 @@ on:
       targetRepository:
         description: 'The repository to trigger the workflow in'
         required: false
-        default: 'platform-mesh/helm-charts'
+        default: 'platform-mesh/platform-mesh'
         type: string
 
 jobs:
@@ -30,9 +30,7 @@ jobs:
          private-key: ${{ secrets.PM_PUBLISHER_PRIVATE_KEY }}
          owner: ${{ github.repository_owner }}
          repositories: |
-           ${{ inputs.chartName }}
-           helm-charts
-           helm-charts-priv
+           platform-mesh
       - run: gh workflow run update-chart-parameters.yaml --repo ${{ inputs.targetRepository }} --field chart=${{ inputs.chart }} --field appVersion=${{ inputs.appVersion }}
         env:
           GITHUB_TOKEN: ${{ steps.generate-token.outputs.token }}
