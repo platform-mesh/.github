@@ -5,7 +5,7 @@ inputs:
     description: OCM CLI release tag to install. Defaults to the org-wide pinned version.
     required: false
     # renovate: datasource=github-releases depName=open-component-model/open-component-model
-    default: "v0.19.1"
+    default: "v0.21.0"
 runs:
   using: composite
   steps:
