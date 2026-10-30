@@ -58,18 +58,18 @@ jobs:
       packages: write
     steps:
       - name: Download SBOM artifacts
-        uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c # v8
+        uses: actions/download-artifact@9000827ccba6bdab643e8b6fd33ac0654aef8333 # v8
         with:
           name: sbom
 
       - name: Download extra resource files
         if: inputs.extraResourcesArtifact != ''
-        uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c # v8
+        uses: actions/download-artifact@9000827ccba6bdab643e8b6fd33ac0654aef8333 # v8
         with:
           name: ${{ inputs.extraResourcesArtifact }}
 
       - name: Setup OCM CLI
-        uses: platform-mesh/.github/.github/actions/setup-ocm@bb344bddf54b4a559ac8dada1d6a275a1707b337 # main
+        uses: platform-mesh/.github/.github/actions/setup-ocm@627a7ad1cb190ad102455c74e97e98e72574bcf9 # main
 
       - name: Write OCM credentials file
         run: |
