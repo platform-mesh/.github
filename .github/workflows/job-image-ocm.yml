@@ -69,7 +69,7 @@ jobs:
           name: ${{ inputs.extraResourcesArtifact }}
 
       - name: Setup OCM CLI
-        uses: platform-mesh/.github/.github/actions/setup-ocm@627a7ad1cb190ad102455c74e97e98e72574bcf9 # main
+        uses: platform-mesh/.github/.github/actions/setup-ocm@fb9e623e9a2f46cdf59d6e3634c33d38eac288d6 # main
 
       - name: Write OCM credentials file
         run: |
