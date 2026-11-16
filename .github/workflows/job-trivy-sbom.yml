@@ -34,12 +34,13 @@ env:
 
 jobs:
   scan-sbom:
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04-arm
     steps:
       - name: Install ocm and oras
         run: |
+          arch="$(uname -m | sed 's/x86_64/amd64/;s/aarch64/arm64/')"
           curl -sSL https://ocm.software/install.sh | sudo bash
-          curl -sSL "https://github.com/oras-project/oras/releases/download/v1.3.2/oras_1.3.2_linux_amd64.tar.gz" \
+          curl -sSL "https://github.com/oras-project/oras/releases/download/v1.3.2/oras_1.3.2_linux_${arch}.tar.gz" \
             | sudo tar -xz -C /usr/local/bin oras
 
       - name: Log in to registry

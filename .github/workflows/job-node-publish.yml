@@ -39,7 +39,7 @@ on:
 
 jobs:
   publish:
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04-arm
     environment: ${{ inputs.environment }}
     steps:
     - name: Setup Git

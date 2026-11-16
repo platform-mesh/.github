@@ -9,7 +9,7 @@ env:
 
 jobs:
   report:
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04-arm
     steps:
       - name: Generate GitHub App token
         id: app-token

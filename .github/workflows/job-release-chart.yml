@@ -40,7 +40,7 @@ on:
 
 jobs:
   release:
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04-arm
     if: ${{ (github.head_ref || github.ref) == format('refs/heads/{0}',inputs.release_branch) }}
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
@@ -50,7 +50,8 @@ jobs:
           if ! command -v yq &>/dev/null
           then
             mkdir -p /home/runner/.local/bin
-            wget https://github.com/mikefarah/yq/releases/latest/download/yq_linux_amd64 -O /home/runner/.local/bin/yq &&\
+            arch="$(uname -m | sed 's/x86_64/amd64/;s/aarch64/arm64/')"
+            wget https://github.com/mikefarah/yq/releases/latest/download/yq_linux_${arch} -O /home/runner/.local/bin/yq &&\
               chmod +x /home/runner/.local/bin/yq
           fi
       - name: Update Chart version
