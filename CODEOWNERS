@@ -1,2 +1,1 @@
-# Default code owners
-* @platform-mesh/frame @platform-mesh/tsc @platform-mesh/kube
+* @platform-mesh/tsc @platform-mesh/go-maintainers @platform-mesh/node-maintainers
