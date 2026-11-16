@@ -1,0 +1,31 @@
+name: Node Audit
+on:
+  workflow_call:
+    inputs:
+      workingDirectory:
+        required: false
+        type: string
+        default: './'
+      node_version:
+        description: 'Node version to use'
+        required: false
+        type: string
+        default: '24'
+
+jobs:
+  audit:
+    runs-on: ubuntu-latest
+
+    steps:
+    - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6
+    - uses: actions/setup-node@53b83947a5a98c8d113130e565377fae1a50d02f # v6
+      with:
+        node-version: ${{ inputs.node_version }}
+        registry-url: https://npm.pkg.github.com/
+    - run: npm ci
+      env:
+        NODE_AUTH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        COMMON_REPOSITORY_TOKEN: ${{ secrets.COMMON_REPOSITORY_TOKEN }}
+      working-directory: ${{ inputs.workingDirectory }}
+    - run: npm audit --audit-level=high
+      working-directory: ${{ inputs.workingDirectory }}
