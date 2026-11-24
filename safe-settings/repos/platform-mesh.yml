@@ -29,24 +29,6 @@ rulesets:
               integration_id: 15368
     bypass_actors: []
 
-  - name: release_branch_gate
-    target: branch
-    enforcement: active
-    conditions:
-      ref_name:
-        exclude: []
-        include:
-          - refs/heads/release-*
-    rules:
-      - type: required_status_checks
-        parameters:
-          strict_required_status_checks_policy: false
-          do_not_enforce_on_create: true
-          required_status_checks:
-            - context: pr-gate
-              integration_id: 15368
-    bypass_actors: []
-
   - name: require_review
     target: branch
     enforcement: active

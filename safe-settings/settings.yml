@@ -121,7 +121,7 @@ rulesets:
             - context: DCO
     bypass_actors: []
 
-  - name: default branch - pr gate
+  - name: pr-gate
     target: branch
     enforcement: active
     conditions:
@@ -129,6 +129,7 @@ rulesets:
         exclude: []
         include:
           - ~DEFAULT_BRANCH
+          - refs/heads/release-*
       repository_name:
         exclude: []
         include:
