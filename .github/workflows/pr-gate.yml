@@ -1,0 +1,70 @@
+name: pr-gate
+
+# Org-wide merge gate, run in every repository by the `default branch - pr gate` ruleset in safe-settings/settings.yml.
+# Repositories need no copy of this file.
+
+on:
+  # Rulesets ignore event filters such as `types`, `branches` and `paths`.
+  merge_group:
+  pull_request:
+
+permissions:
+  actions: read # Needed to list workflow runs for the gate
+
+concurrency:
+  group: pr-gate-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  pr-gate:
+    runs-on: ubuntu-24.04-arm
+    timeout-minutes: 60
+    env:
+      GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      GH_REPO: ${{ github.repository }}
+      SHA: ${{ github.event.merge_group.head_sha || github.event.pull_request.head.sha }}
+      SELF_WORKFLOW: ${{ github.workflow }}
+    steps:
+      # must be inlined so the .github repo doesn't need to be checked out.
+      - name: Wait for all workflows to succeed or the first to fail
+        run: |
+          set -euo pipefail
+
+          # Latest run per workflow on the commit as a stream of {name, bucket}.
+          runs() {
+              gh run list --commit "$SHA" --limit 100 --json name,status,conclusion,createdAt,databaseId \
+                  --jq '
+                      group_by(.name)
+                      | map(max_by([.createdAt, .databaseId]))
+                      | .[]
+                      | select(.name != env.SELF_WORKFLOW)
+                      | {
+                          name,
+                          bucket: (
+                              if .status != "completed" then "pending"
+                              elif .conclusion == "success" or .conclusion == "skipped" or .conclusion == "neutral" then "pass"
+                              else "fail"
+                              end
+                          )
+                      }'
+          }
+
+          sleep 30 # let workflows register their runs first
+
+          while true; do
+              runs="$(runs)"
+              if jq -e 'select(.bucket == "fail")' <<< "$runs" > /dev/null; then
+                  echo Failed workflows:
+                  jq -r 'select(.bucket == "fail") | "  \(.name)"' <<< "$runs"
+                  exit 1
+              fi
+              if jq -e 'select(.bucket == "pending")' <<< "$runs" > /dev/null; then
+                  echo Waiting for:
+                  jq -r 'select(.bucket == "pending") | "  \(.name)"' <<< "$runs"
+                  sleep 5
+                  continue
+              fi
+              break
+          done
+
+          echo All workflows passed

@@ -121,6 +121,28 @@ rulesets:
             - context: DCO
     bypass_actors: []
 
+  - name: default branch - pr gate
+    target: branch
+    enforcement: evaluate
+    conditions:
+      ref_name:
+        exclude: []
+        include:
+          - ~DEFAULT_BRANCH
+      repository_name:
+        exclude: []
+        include:
+          - ~ALL
+    rules:
+      - type: workflows
+        parameters:
+          do_not_enforce_on_create: true
+          workflows:
+            - path: .github/workflows/pr-gate.yml
+              repository_id: 943420689 # platform-mesh/.github
+              ref: refs/heads/main
+    bypass_actors: []
+
   - name: merge queue branches
     target: branch
     enforcement: active
@@ -185,33 +207,6 @@ rulesets:
       - actor_id: 1415820
         actor_type: Integration
         bypass_mode: always
-
-  - name: default branch - quality gate
-    target: branch
-    enforcement: active
-    conditions:
-      ref_name:
-        include:
-          - ~DEFAULT_BRANCH
-        exclude: []
-      repository_property:
-        include:
-          - name: REPO_TYPE
-            source: custom
-            property_values:
-              - GO_APP
-              - GO_MODULE
-              - NODE_APP
-              - NODE_MODULE
-        exclude: []
-    rules:
-      - type: required_status_checks
-        parameters:
-          do_not_enforce_on_create: true
-          strict_required_status_checks_policy: false
-          required_status_checks:
-            - context: quality-gate
-    bypass_actors: []
 
   - name: release branches - release-managers only
     target: branch
