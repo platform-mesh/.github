@@ -1,3 +1,3 @@
 * @platform-mesh/tsc @platform-mesh/go-maintainers @platform-mesh/node-maintainers
-/safe-settings/** @ntnn
-/.github/workflows/safe-settings-sync.yml @ntnn
+/safe-settings/** @platform-mesh/tsc
+/.github/workflows/safe-settings-sync.yml @platform-mesh/tsc
